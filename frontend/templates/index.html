@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的博客 - 用户注册与评论系统</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
     <header class="header">
@@ -77,6 +77,14 @@
             </div>
         </div>
 
+        <section class="nav-links">
+            <a href="/blog" class="nav-link">博客</a>
+            <a href="/about" class="nav-link">关于</a>
+            <a href="/contact" class="nav-link">联系</a>
+            <a href="/api/v0/post/1" class="nav-link">API 示例</a>
+            <a href="/blog/1?id=1" class="nav-link">文章示例</a>
+        </section>
+
         <!-- 主要内容区域 -->
         <section class="content">
             <article class="article">
@@ -131,7 +139,7 @@
     </main>
 
     <footer class="footer">
-        <p>&copy; 2025 我的博客. 基于 HTML5 + Go + Fiber 构建</p>
+        <p>&copy; 2025 chkviii</p>
     </footer>
 
     <!-- 提示消息 -->
@@ -139,6 +147,6 @@
         <span id="toastMessage"></span>
     </div>
 
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="/static/js/main.js"></script>
 </body>
 </html>

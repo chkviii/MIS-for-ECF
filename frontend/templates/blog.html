@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Blog</title>
+    <script src="/static/js/lib/marked.umd.js"></script>
+    <script src="/static/js/lib/purify.min.js"></script>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-brand">
+                <h1>My Blog</h1>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main">
+        
+
+        <!-- main content -->
+        <section class="content">
+            <article class="article">
+                <header class="article-header">
+                    <h2 id="article-title">Loading</h2>
+                    <p class="article-meta">
+                        <span>Author: </span>
+                        <span id="article-author">Loading... </span>
+                        <span>Last Updated: </span>
+                        <span id="article-date">Loading...</span>
+                    </p>
+                </header>
+                <content class="article-content">
+                    
+                    <!-- Markdown Container -->
+                    <div id="markdown-content" class="markdown-content">
+                        <p>Loading content...</p>
+                    </div>
+                </content>
+
+            </article>
+
+            <!-- Comment Area -->
+            <section class="comments-section">
+                <h2>Comments</h2>
+                <!-- TODO: Comment Area -->
+            </section>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 chkviii.</p>
+    </footer>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="toast hidden">
+        <span id="toastMessage"></span>
+    </div>
+    
+    <script type="module">
+        // 导入并初始化
+        import { Blog } from '/static/js/blog.js';
+       
+        // 等待 DOM 加载完成
+        document.addEventListener('DOMContentLoaded', () => {
+            const blog = new Blog();
+            
+            // 从 URL 获取文章 ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const postID = urlParams.get('id')
+            
+            if (postID) {
+                blog.loadBlogPost(postID);
+            }
+        });
+    </script>
+    
+</body>
+</html>

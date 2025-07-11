@@ -1,42 +1,42 @@
 package config
 
 import (
-	"log"
+	"fmt"
+	"path/filepath"
 
 	"github.com/spf13/viper"
 )
 
+// Config holds the configuration for the application.
 type Config struct {
 	Port      string `mapstructure:"PORT"`
-	DBHost    string `mapstructure:"DB_HOST"`
-	DBPort    string `mapstructure:"DB_PORT"`
-	DBUser    string `mapstructure:"DB_USER"`
-	DBPass    string `mapstructure:"DB_PASS"`
-	DBName    string `mapstructure:"DB_NAME"`
-	JWTSecret string `mapstructure:"JWT_SECRET"`
+	Static_Path string `mapstructure:"STATIC_PATH"`
+	Html_Path string `mapstructure:"HTML_PATH"`
+	//JWTSecret string `mapstructure:"JWT_SECRET"`
 }
 
 func Load() *Config {
-	viper.SetDefault("PORT", "8080")
-	viper.SetDefault("DB_HOST", "localhost")
-	viper.SetDefault("DB_PORT", "3306")
-	viper.SetDefault("DB_USER", "root")
-	viper.SetDefault("DB_PASS", "")
-	viper.SetDefault("DB_NAME", "mypage")
-	viper.SetDefault("JWT_SECRET", "your-secret-key")
 
-	viper.AutomaticEnv()
-	viper.SetConfigName(".env")
-	viper.SetConfigType("env")
-	viper.AddConfigPath(".")
+	// Set default values
+	viper.SetDefault("PORT", "33031")
+
+	// Set default paths relative to the working directory
+	viper.SetDefault("STATIC_PATH", filepath.Join("..", "frontend","static"))
+	viper.SetDefault("HTML_PATH", filepath.Join("..", "frontend", "templates"))
+	//viper.SetDefault("JWT_SECRET", "your-secret-key")
+
+	//viper.AutomaticEnv()
+	viper.SetConfigName(".env") // leave value in .env file empty to use defaults
+	viper.SetConfigType("env") // Load environment variables from .env file
+	viper.AddConfigPath(".")// look for config in the working directory
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Println("No config file found, using defaults and environment variables")
+		fmt.Println("Go: No config file found, using defaults and environment variables")
 	}
 
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
-		log.Fatal("Unable to decode config:", err)
+		fmt.Println("Go: Unable to decode config:", err)
 	}
 
 	return &config

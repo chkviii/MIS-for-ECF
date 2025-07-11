@@ -1,4 +1,4 @@
-class BlogApp {
+class App {
     constructor() {
         this.currentUser = null;
         this.currentPage = 1;
@@ -310,5 +310,5 @@ class BlogApp {
 
 // 启动应用
 document.addEventListener('DOMContentLoaded', () => {
-    new BlogApp();
+    new App();
 });
