@@ -19,7 +19,7 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	fmt.Println("GO: Loaded configuration:", cfg)
+	fmt.Println("GO: Loaded configuration:", *cfg)
 	
 	//main router
 	r := chi.NewRouter()
@@ -38,7 +38,7 @@ func main() {
 	r.Handle("/api/v0/post/{postID}", handler.BlogPostHandler()) // Blog post handler
 
 	//listen and serve on port 33031
-	fmt.Println("GO: Server starting on port", "http://localhost:33031")
-	http.ListenAndServe(":33031", r)
+	fmt.Println("GO: Server starting on port", "http://localhost" + cfg.Port)
+	http.ListenAndServe(cfg.Port, r)
 	
 }

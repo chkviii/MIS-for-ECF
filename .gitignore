@@ -1,0 +1,4 @@
+/backend/bin/
+/.env
+/compile.bat
+/*.config

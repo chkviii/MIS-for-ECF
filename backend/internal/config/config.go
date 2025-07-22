@@ -18,7 +18,7 @@ type Config struct {
 func Load() *Config {
 
 	// Set default values
-	viper.SetDefault("PORT", "33031")
+	viper.SetDefault("PORT", ":33031")
 
 	// Set default paths relative to the working directory
 	viper.SetDefault("STATIC_PATH", filepath.Join("..", "frontend","static"))
