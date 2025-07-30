@@ -1,9 +1,7 @@
 package service
 
 import (
-	"errors"
 	"mypage-backend/internal/repo"
-	"strconv"
 )
 
 type CommentService struct {

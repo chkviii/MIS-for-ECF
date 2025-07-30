@@ -9,9 +9,10 @@ import (
 
 // Config holds the configuration for the application.
 type Config struct {
-	Port      string `mapstructure:"PORT"`
+	Port        string `mapstructure:"PORT"`
 	Static_Path string `mapstructure:"STATIC_PATH"`
-	Html_Path string `mapstructure:"HTML_PATH"`
+	Html_Path   string `mapstructure:"HTML_PATH"`
+	DB_Path     string `mapstructure:"DB_PATH"`
 	//JWTSecret string `mapstructure:"JWT_SECRET"`
 }
 
@@ -21,14 +22,15 @@ func Load() *Config {
 	viper.SetDefault("PORT", ":33031")
 
 	// Set default paths relative to the working directory
-	viper.SetDefault("STATIC_PATH", filepath.Join("..", "frontend","static"))
+	viper.SetDefault("STATIC_PATH", filepath.Join("..", "frontend", "static"))
 	viper.SetDefault("HTML_PATH", filepath.Join("..", "frontend", "templates"))
+	viper.SetDefault("DB_PATH", filepath.Join("..", "data", "grom.db"))
 	//viper.SetDefault("JWT_SECRET", "your-secret-key")
 
 	//viper.AutomaticEnv()
-	viper.SetConfigName(".env") // leave value in .env file empty to use defaults
+	viper.SetConfigName(".env")
 	viper.SetConfigType("env") // Load environment variables from .env file
-	viper.AddConfigPath(".")// look for config in the working directory
+	viper.AddConfigPath(".")   // look for config in the working directory
 
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("Go: No config file found, using defaults and environment variables")

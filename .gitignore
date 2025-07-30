@@ -2,3 +2,6 @@
 /.env
 /compile.bat
 /*.conf
+/Note.md
+/backend/README.md
+/data

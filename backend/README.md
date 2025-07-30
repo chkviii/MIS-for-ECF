@@ -1,5 +1,7 @@
 # MyPage Backend API
 
+# Ignore this part please
+
 基于 Go + Fiber + MySQL 构建的博客评论系统后端 API。
 
 ## 路由说明
@@ -33,7 +35,7 @@ go mod tidy
 go run cmd/server/main.go
 ```
 
-## 环境配置
+## 环境配置 TODO
 
 创建 `.env` 文件并配置以下参数：
 ```env
@@ -48,4 +50,24 @@ JWT_SECRET=your-super-secret-jwt-key
 
 ## 数据库
 
-系统会自动创建所需的数据表，请确保MySQL服务已启动且配置正确。
+系统会自动创建所需的数据表，TODO
+
+# Main content starts here
+
+## Dirctories
+- backend
+    - internal
+        - config
+        - handler
+        - middleware
+        - repo: database io
+            - database.go: table structure and connection
+            - ameta.go
+            - astatistics.go
+            - comment.go
+            - user.go
+        - service
+        - util
+    - servver
+    - test
+
