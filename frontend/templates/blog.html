@@ -4,18 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Blog</title>
+    <script src="/static/js/main.js" type="module"></script>
     <script src="/static/js/lib/marked.umd.js"></script>
     <script src="/static/js/lib/purify.min.js"></script>
     <link rel="stylesheet" href="/static/css/styles.css">
+
 </head>
 <body>
     <header class="header">
+        <!-- //navigation bar     -->
         <nav class="nav">
+        <!-- button to toggle sidebar -->
+        <button id="toggleSidebar" class="btn btn-outline">Toggle Sidebar</button>
             <div class="nav-brand">
                 <h1>My Blog</h1>
             </div>
         </nav>
     </header>
+
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="/index.html">Home</a></li>
+                <li><a href="/blog.html">Blog</a></li>
+                <li><a href="/about.html">About</a></li>
+                <li><a href="/contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </aside>
 
     <main class="main">
         
@@ -32,13 +48,13 @@
                         <span id="article-date">Loading...</span>
                     </p>
                 </header>
-                <content class="article-content">
+                <div class="article-content">
                     
                     <!-- Markdown Container -->
                     <div id="markdown-content" class="markdown-content">
-                        <p>Loading content...</p>
+                        <p class="markdown-content">Loading content...</p>
                     </div>
-                </content>
+                </div>
 
             </article>
 

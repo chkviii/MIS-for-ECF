@@ -39,3 +39,7 @@ func (r *CommentRepository) FetchByArticleID(articleID string, limit, offset int
 		Find(&comments).Error
 	return comments, err
 }
+
+func (r *CommentRepository) Delete(id uint) error {
+	return r.db.Delete(&Comment{}, id).Error
+}

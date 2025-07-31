@@ -1,0 +1,33 @@
+/* ===== Main Content Layout ===== */
+.main {
+    margin-left: var(--sidebar-width);
+    margin-top: var(--header-height);
+    min-height: calc(100vh - var(--header-height));
+    padding: var(--spacing-2xl) var(--spacing-lg);
+}
+
+.main-expanded {
+    margin-left: 0;
+    transition: margin-left 0.2s ease-in-out;
+}
+
+.content {
+    max-width: var(--content-max-width);
+    margin-left: var(--spacing-md);
+}
+
+/* Footer */
+.footer {
+    margin-left: var(--sidebar-width);
+    background-color: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+    padding: var(--spacing-md);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.footer-expanded {
+    margin-left: 0;
+    transition: margin-left 0.2s ease-in-out;
+}

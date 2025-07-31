@@ -27,28 +27,29 @@ func BlogHandler() http.Handler {
 	})
 }
 
-//api for blog post
+// api for blog post
 func BlogPostHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Serve the blog post file based on the URL parameter
-		postID := chi.URLParam(r, "postID")
-		
+		// get postID from url after ?
+		postID := r.URL.Query().Get("id")
+
 		//get article metadata
 
 		//just write a simple response for now
 		articleData := struct {
-			PostID    string
-			Title     string
-			AuthorID  string
-			AuthorName string
-			LastUpdated string
+			PostID          string
+			Title           string
+			AuthorID        string
+			AuthorName      string
+			LastUpdated     string
 			ContentFilePath string
 		}{
-			PostID:    postID,
-			Title:     "示例文章标题",
-			AuthorID:  "author123",
-			AuthorName: "作者姓名",
-			LastUpdated: "2023-10-01",
+			PostID:          postID,
+			Title:           "示例文章标题",
+			AuthorID:        "author123",
+			AuthorName:      "作者姓名",
+			LastUpdated:     "2023-10-01",
 			ContentFilePath: "/static/article/" + postID + ".md",
 		}
 

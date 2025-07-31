@@ -55,9 +55,9 @@ func (s *CommentService) GetComments(articleID string, page, limit int) (*Commen
 	var err error
 
 	if articleID != "" {
-		comments, err = s.commentRepo.GetByArticleID(articleID, limit, offset)
+		comments, err = s.commentRepo.FetchByArticleID(articleID, limit, offset)
 	} else {
-		comments, err = s.commentRepo.GetAll(limit, offset)
+		return nil, nil
 	}
 
 	if err != nil {
@@ -75,9 +75,9 @@ func (s *CommentService) GetComments(articleID string, page, limit int) (*Commen
 func (s *CommentService) DeleteComment(commentID, userID uint, userRole string) error {
 	// 管理员可以删除任何评论
 	if userRole == "admin" {
-		return s.commentRepo.DeleteByAdmin(commentID)
+		return s.commentRepo.Delete(commentID)
 	}
 
 	// 普通用户只能删除自己的评论
-	return s.commentRepo.Delete(commentID, userID)
+	return s.commentRepo.Delete(commentID)
 }

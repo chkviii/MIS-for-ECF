@@ -27,6 +27,7 @@ type ArticleMeta struct {
 	AuthorID  uint     `json:"uid" gorm:"not null"`
 	CreatedAt int64    `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt int64    `json:"updated_at" gorm:"autoUpdateTime"`
+	FilePath  string   `json:"file_path" gorm:"not null;unique"`
 	Tags      []string `json:"tags" gorm:"type:text"` // Tags stored as JSON
 }
 
