@@ -28,7 +28,7 @@ func BlogHandler() http.Handler {
 }
 
 // api for blog post
-func BlogPostHandler() http.Handler {
+func PostHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Serve the blog post file based on the URL parameter
 		// get postID from url after ?

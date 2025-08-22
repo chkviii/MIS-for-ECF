@@ -16,6 +16,8 @@ type Config struct {
 	//JWTSecret string `mapstructure:"JWT_SECRET"`
 }
 
+var GlobalConfig *Config
+
 func Load() *Config {
 
 	// Set default values
@@ -36,10 +38,10 @@ func Load() *Config {
 		fmt.Println("Go: No config file found, using defaults and environment variables")
 	}
 
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
+	GlobalConfig = &Config{}
+	if err := viper.Unmarshal(*GlobalConfig); err != nil {
 		fmt.Println("Go: Unable to decode config:", err)
 	}
 
-	return &config
+	return GlobalConfig
 }

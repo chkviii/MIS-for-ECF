@@ -11,8 +11,8 @@ class App{
     initSidebar() {
         this.toggleButton = document.getElementById('toggleSidebar');
         this.sidebar = document.getElementById('sidebar');
-        this.main = document.querySelector('main');
-        this.footer = document.querySelector('footer');
+        this.main = document.getElementById('main');
+        this.footer = document.getElementById('footer');
 
         console.log(1, this.main, this.footer);
 
