@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bug Nomad</title>
+    <title>Register - Bug Nomad</title>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
     <header class="header">
         <nav class="nav">
-            <button id="toggleSidebar" class="btn btn-outline">X</button>
             <div class="nav-brand">
                 <h1>My Blog</h1>
             </div>
-            <div id="authActions" class="nav-actions" >
+            <div id="authActions" class="nav-actions hidden" >
                 <button id="registerBtn" class="btn btn-outline">Register</button>
                 <button id="loginBtn" class="btn btn-primary">Login</button>
             </div>
@@ -24,59 +23,67 @@
         </nav>
     </header>
 
-    <aside id="sidebar" class="sidebar">
-        <nav class="sidebar-nav">
-            <ul>
-                <li><a href="/index.html">Home</a></li>
-                <li><a href="/blog.html">Blog</a></li>
-                <li><a href="/about.html">About</a></li>
-                <li><a href="/contact.html">Contact</a></li>
-            </ul>
-        </nav>
-    </aside>
-
     <main id="main" class="main">
-        <!-- loginModal -->
+        <!-- 登录模态框 -->
         <div id="loginModal" class="modal hidden">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>Login</h2>
+                    <h2>用户登录</h2>
                     <span class="close" data-modal="loginModal">&times;</span>
                 </div>
-                
                 <form id="loginForm" class="form">
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <div>
-                                <label for="loginUsername">Username</label>
-                            </div>
-                            <input type="text" id="loginUsername" name="username" required minlength="3" maxlength="20">
-                        </div>
-                        <div class="form-group">
-                            <div>
-                            <label for="loginPassword">Password</label>
-                            </div>
-                            <input type="password" id="loginPassword" name="password" required minlength="6">
-                        </div>
+                    <div class="form-group">
+                        <label for="loginUsername">用户名</label>
+                        <input type="text" id="loginUsername" name="username" required minlength="3" maxlength="20">
                     </div>
-                    <div class="modal-footer">
-                        <div class="form-actions">
-                            <button id="loginFormBtn" type="submit" class="btn btn-primary">Login</button>
-                            <button type="button" class="btn btn-outline" data-modal="loginModal">Cancel</button>
-                        </div>
+                    <div class="form-group">
+                        <label for="loginPassword">密码</label>
+                        <input type="password" id="loginPassword" name="password" required minlength="6">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">登录</button>
+                        <button type="button" class="btn btn-outline" data-modal="loginModal">取消</button>
                     </div>
                 </form>
-                
             </div>
         </div>
 
-        <section class="nav-links">
+        <!-- 注册模态框 -->
+        <div id="registerModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>用户注册</h2>
+                    <span class="close" data-modal="registerModal">&times;</span>
+                </div>
+                <form id="registerForm" class="form">
+                    <div class="form-group">
+                        <label for="registerUsername">用户名</label>
+                        <input type="text" id="registerUsername" name="username" required minlength="3" maxlength="20" 
+                               pattern="[a-zA-Z0-9_]+" title="用户名只能包含字母、数字和下划线">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">密码</label>
+                        <input type="password" id="registerPassword" name="password" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">确认密码</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">注册</button>
+                        <button type="button" class="btn btn-outline" data-modal="registerModal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- <section class="nav-links">
             <a href="/blog" class="nav-link">博客</a>
             <a href="/about" class="nav-link">关于</a>
             <a href="/contact" class="nav-link">联系</a>
             <a href="/api/v0/post/1" class="nav-link">API 示例</a>
             <a href="/blog/post?id=1" class="nav-link">文章示例</a>
-        </section>
+        </section> -->
 
         <!-- 主要内容区域 -->
         <section class="content">

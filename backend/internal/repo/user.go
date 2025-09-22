@@ -1,6 +1,9 @@
 package repo
 
 import (
+	"strconv"
+	"sync"
+
 	"gorm.io/gorm"
 )
 
@@ -8,8 +11,14 @@ type UserRepository struct {
 	db *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{db: db}
+var userRepoOnce sync.Once
+var userRepo *UserRepository
+
+func GetUserRepo(db *gorm.DB) *UserRepository {
+	userRepoOnce.Do(func() {
+		userRepo = &UserRepository{db: db}
+	})
+	return userRepo
 }
 
 func (r *UserRepository) Create(user *User) error {
@@ -47,9 +56,14 @@ func (r *UserRepository) GetByUsername(username string) (*User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) GetByID(id uint) (*User, error) {
+func (r *UserRepository) GetByID(idstr string) (*User, error) {
+	// Convert string ID to uint first
+	uid, strerr := strconv.ParseUint(idstr, 10, 32)
+	if strerr != nil {
+		return nil, strerr
+	}
 	var user User
-	err := r.db.First(&user, id).Error
+	err := r.db.First(&user, uid).Error
 	if err != nil {
 		return nil, err
 	}

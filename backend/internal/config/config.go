@@ -13,6 +13,7 @@ type Config struct {
 	Static_Path string `mapstructure:"STATIC_PATH"`
 	Html_Path   string `mapstructure:"HTML_PATH"`
 	DB_Path     string `mapstructure:"DB_PATH"`
+	Ecrypt_Seed string `mapstructure:"ENCRYPT_SEED"`
 	//JWTSecret string `mapstructure:"JWT_SECRET"`
 }
 
@@ -27,6 +28,7 @@ func Load() *Config {
 	viper.SetDefault("STATIC_PATH", filepath.Join("..", "frontend", "static"))
 	viper.SetDefault("HTML_PATH", filepath.Join("..", "frontend", "templates"))
 	viper.SetDefault("DB_PATH", filepath.Join("..", "data", "grom.db"))
+	viper.SetDefault("ENCRYPT_SEED", "This is a random seed: ahdgcv-ajweory943gb;caP.'CK[QW]")
 	//viper.SetDefault("JWT_SECRET", "your-secret-key")
 
 	//viper.AutomaticEnv()

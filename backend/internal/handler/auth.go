@@ -2,14 +2,30 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
+	"strings"
 
 	"crypto/ed25519"
 
-	"mypage-backend/internal/config"
 	"mypage-backend/internal/repo"
 	"mypage-backend/internal/service"
+	"mypage-backend/internal/util"
 )
+
+// register page init
+func RegisterHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Serve the register.html file
+		http.ServeFile(w, r, util.Html_Path("register.html"))
+		// send server public key to the client
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"pubkey":"` + string(util.SrvPubKey()) + `"}`))
+
+	})
+}
+
+// register handler
+func RegisterHandlerFunc(w http.ResponseWriter, r *http.Request) {
+}
 
 // login handler
 func LoginHandlerFunc(w http.ResponseWriter, r *http.Request) {
@@ -20,23 +36,13 @@ func LoginHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue(loginType)
 
 	// Initialize database connection
-	db, err := repo.InitDB(config.GlobalConfig)
+	db, err := repo.GetDB()
 	if err != nil {
-		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
+		http.Error(w, "It's not your fault. \n Database Offline", http.StatusInternalServerError)
 		return
 	}
 
-	userRepo := repo.NewUserRepository(db)
-
-	var userID uint64
-	if loginType == "uid" {
-		// Convert username to uint for user ID
-		userID, err = strconv.ParseUint(username, 10, 32)
-		if err != nil {
-			http.Error(w, "Invalid user ID format", http.StatusBadRequest)
-			return
-		}
-	}
+	userRepo := repo.GetUserRepo(db)
 
 	var user *repo.User
 	// Check if the user exists based on the login type
@@ -44,9 +50,9 @@ func LoginHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "username":
 		user, err = userRepo.GetByUsername(username)
 	case "email":
-		user, err = userRepo.GetByEmail(username)
+		user, err = userRepo.GetByEmail(strings.ToLower(username))
 	case "uid":
-		user, err = userRepo.GetByID(uint(userID))
+		user, err = userRepo.GetByID(username)
 	default:
 		http.Error(w, "Invalid login type", http.StatusBadRequest)
 		return
@@ -57,7 +63,7 @@ func LoginHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ed25519.Verify([]byte(user.Password), []byte(salt), []byte(sig)) {
-		s := service.NewSession(service.Sess, string(user.ID))
+		s := service.SessMgr.NewSession(string(user.ID))
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_id",
 			Value:    s.ID,
@@ -79,4 +85,8 @@ func LoginHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+}
+
+// logout handler
+func LogoutHandlerFunc(w http.ResponseWriter, r *http.Request) {
 }

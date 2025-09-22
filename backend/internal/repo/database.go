@@ -5,6 +5,7 @@ import (
 	"mypage-backend/internal/config"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
@@ -49,18 +50,22 @@ type Comment struct {
 	CreatedAt int64  `json:"created_at" gorm:"autoCreateTime"`
 }
 
+var dbInstance *gorm.DB
+var dbOnce sync.Once
+var initErr error
+
 // Initializes the database connection
-func InitDB(cfg *config.Config) (*gorm.DB, error) {
+func InitDB(cfg *config.Config) error {
 
 	dbPath := cfg.DB_Path
 
 	dbDir := filepath.Dir(dbPath)
 	if err := os.MkdirAll(dbDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create database directory: %w", err)
+		return fmt.Errorf("failed to create database directory: %w", err)
 	}
 
 	if _, err := os.Stat(dbDir); err != nil {
-		return nil, fmt.Errorf("database directory not accessible: %w", err)
+		return fmt.Errorf("database directory not accessible: %w", err)
 	}
 
 	fmt.Printf("Attempting to open database at: %s\n", dbPath)
@@ -70,17 +75,27 @@ func InitDB(cfg *config.Config) (*gorm.DB, error) {
 	config := &gorm.Config{}
 
 	// 打开数据库连接
-	db, err := gorm.Open(sqlite.Open(dbPath), config)
+	dbInstance, err := gorm.Open(sqlite.Open(dbPath), config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	// 自动迁移数据库结构
-	if err := autoMigrate(db); err != nil {
-		return nil, fmt.Errorf("failed to migrate database: %w", err)
+	if err := autoMigrate(dbInstance); err != nil {
+		return fmt.Errorf("failed to migrate database: %w", err)
 	}
 
-	return db, nil
+	return nil
+}
+
+func GetDB() (*gorm.DB, error) {
+	dbOnce.Do(func() {
+		initErr = InitDB(config.GlobalConfig)
+	})
+	if initErr != nil {
+		return nil, initErr
+	}
+	return dbInstance, nil
 }
 
 // 自动迁移数据库表结构

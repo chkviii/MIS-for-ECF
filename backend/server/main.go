@@ -6,6 +6,7 @@ import (
 
 	"mypage-backend/internal/config"
 	"mypage-backend/internal/handler"
+	"mypage-backend/internal/midware"
 	"mypage-backend/internal/service"
 
 	// "mypage-backend/internal/middleware"
@@ -40,11 +41,17 @@ func main() {
 	r.Handle("/api/v0/post/{postID}", handler.PostHandler()) // Blog post handler
 	r.Post("api/v0/login", handler.LoginHandlerFunc)         // Login handler
 
+	r.Group(func(r chi.Router) {
+		r.Use(midware.AuthMiddleware)                       // Apply authentication middleware
+		r.Post("/api/v0/logout", handler.LogoutHandlerFunc) // Logout handler
+	})
+
+	// Initialize services
+	service.InitSessionService() // Initialize session service
+
 	//listen and serve on port 33031
 	fmt.Println("GO: Server starting on port", "http://localhost"+cfg.Port)
-
 	// Start the server
-	service.InitSessionService() // Initialize session service
 	http.ListenAndServe(cfg.Port, r)
 
 }

@@ -1,4 +1,4 @@
-package main
+package test
 
 import (
 	"fmt"
@@ -6,20 +6,20 @@ import (
 	"mypage-backend/internal/repo"
 )
 
-func main() {
+func test() {
 	// Load configuration
 	cfg := config.Load()
 	fmt.Println("GO: Loaded configuration:", *cfg)
 
 	// Initialize database connection
-	db, err := repo.InitDB(cfg)
+	db, err := repo.GetDB()
 	if err != nil {
 		fmt.Println("GO: Error initializing database:", err)
 		return
 	}
 
 	// Create a new user repository
-	userRepo := repo.NewUserRepository(db)
+	userRepo := repo.GetUserRepo(db)
 
 	// Example usage of user repository
 	newUser := &repo.User{
@@ -82,7 +82,7 @@ func main() {
 	}
 
 	//reconnect to the database
-	db, err = repo.InitDB(cfg)
+	db, err = repo.GetDB()
 	if err != nil {
 		fmt.Println("GO: Error re-initializing database:", err)
 		return
@@ -90,9 +90,9 @@ func main() {
 	fmt.Println("GO: Reconnected to the database successfully")
 
 	// reopen the user repository
-	userRepo = repo.NewUserRepository(db)
+	userRepo = repo.GetUserRepo(db)
 	// Example of getting a user by ID
-	userByID, err := userRepo.GetByID(1)
+	userByID, err := userRepo.GetByID("1")
 	if err != nil {
 		fmt.Println("GO: Error getting user by ID:", err)
 	} else {

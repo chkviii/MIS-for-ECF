@@ -14,45 +14,58 @@ import (
 )
 
 type Session struct {
-	ID        string `json:"session_id"`
-	Key       []byte `json:"session_key"`
-	UserID    string `json:"user_id"`
-	ExpiresAt int64  `json:"expires_at"`
+	ID         string `json:"session_id"`
+	Key        []byte `json:"session_key"`
+	UserID     string `json:"user_id"`
+	UserPubKey string `json:"user_pub_key,omitempty"`
+	ExpiresAt  int64  `json:"expires_at"`
 }
 
-var Sess *sync.Map // key: string, value: *Session
+type SessionManager struct {
+	sess *sync.Map
+}
+
+var (
+	SessMgr  *SessionManager // Global instance of SessionManager
+	initOnce sync.Once
+)
 
 func InitSessionService() {
-	// Initialize the session service with an empty map
-	Sess = &sync.Map{}
-	go func() {
-		for {
-			time.Sleep(5 * time.Minute) // Check every 5 minutes
-			Sess.Range(func(key, value any) bool {
-				session, ok := value.(*Session)
-				if !ok || session == nil {
-					return true // Skip if not a valid session
-				}
-				if !session.isAlive() {
-					Sess.Delete(key) // Remove expired session
-				}
-				return true // Continue iteration
-			})
+	initOnce.Do(func() {
+		SessMgr = &SessionManager{
+			sess: &sync.Map{},
 		}
-	}()
+		go SessMgr.startCleanupRoutine()
+	})
 }
 
-func NewSession(sessions *sync.Map, UserID string) *Session {
+func (sm *SessionManager) startCleanupRoutine() {
+	for {
+		time.Sleep(5 * time.Minute)
+		sm.sess.Range(func(key, value any) bool {
+			session, ok := value.(*Session)
+			if !ok || session == nil {
+				return true
+			}
+			if !session.isAlive() {
+				sm.sess.Delete(key)
+			}
+			return true
+		})
+	}
+}
+
+func (sm *SessionManager) NewSession(UserID string) *Session {
 	// Generate a new session ID and key
 	// check if session already exists
 	newID := uuid.New().String()
-	for _, ok := sessions.Load(newID); ok; {
-		newID = uuid.New().String()
+	for _, ok := sm.sess.Load(newID); ok; newID = uuid.New().String() {
 	}
+
+	// Generate a random 32-byte key for AES-256
 	newKey := make([]byte, 32)
-	if _, err := rand.Read(newKey); err != nil {
-		panic("failed to generate session key")
-	}
+	rand.Read(newKey) // ignore error, unlikely to happen
+	// keyB64 := base64.StdEncoding.EncodeToString(newKey)
 
 	newSession := &Session{
 		ID:        newID,
@@ -60,7 +73,32 @@ func NewSession(sessions *sync.Map, UserID string) *Session {
 		UserID:    UserID,
 		ExpiresAt: time.Now().Add(60 * time.Minute).Unix(), // 60 minutes expiration
 	}
-	sessions.Store(newID, newSession)
+
+	sm.sess.Store(newID, newSession)
+
+	return newSession
+}
+
+func (sm *SessionManager) NewRegSession(UserID string) *Session {
+	// Generate a new session ID and key
+	// check if session already exists
+	newID := uuid.New().String()
+	for _, ok := sm.sess.Load(newID); ok; newID = uuid.New().String() {
+	}
+
+	// Generate a random 32-byte key for AES-256
+	newKey := make([]byte, 32)
+	rand.Read(newKey) // ignore error, unlikely to happen
+	// keyB64 := base64.StdEncoding.EncodeToString(newKey)
+
+	newSession := &Session{
+		ID:        newID,
+		Key:       newKey,
+		UserID:    UserID,
+		ExpiresAt: time.Now().Add(60 * time.Minute).Unix(), // 60 minutes expiration
+	}
+
+	sm.sess.Store(newID, newSession)
 
 	return newSession
 }
@@ -72,5 +110,42 @@ func (s *Session) isAlive() bool {
 
 func (s *Session) Refresh() {
 	// Refresh the session expiration time
-	s.ExpiresAt = time.Now().Add(60 * time.Minute).Unix() // 60 minutes expiration
+	if s.ExpiresAt < time.Now().Add(60*time.Minute).Unix() { // only extend if less than 60 minutes left
+		s.ExpiresAt = time.Now().Add(60 * time.Minute).Unix() // 60 minutes expiration
+	}
+}
+
+func (sm *SessionManager) DeleteSession(sessionID string) {
+	sm.sess.Delete(sessionID)
+}
+
+// Not required now
+func (sm *SessionManager) GetUser(sessionID string) (string, bool) {
+	value, ok := sm.sess.Load(sessionID)
+	if !ok {
+		return "", false
+	}
+	session, ok := value.(*Session)
+	if !ok || session == nil || !session.isAlive() {
+		sm.sess.Delete(sessionID)
+		return "", false
+	}
+	// Refresh the session expiration time
+	session.Refresh()
+	return session.UserID, true
+}
+
+func (sm *SessionManager) GetKey(sessionID string) ([]byte, bool) {
+	value, ok := sm.sess.Load(sessionID)
+	if !ok {
+		return nil, false
+	}
+	session, ok := value.(*Session)
+	if !ok || session == nil || !session.isAlive() {
+		sm.sess.Delete(sessionID)
+		return nil, false
+	}
+	// Refresh the session expiration time
+	session.Refresh()
+	return session.Key, true
 }
