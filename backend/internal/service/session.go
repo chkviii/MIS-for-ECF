@@ -7,6 +7,7 @@ this is not a persistent storage solution.
 
 import (
 	"crypto/rand"
+	"errors"
 	"sync"
 	"time"
 
@@ -30,6 +31,11 @@ var (
 	initOnce sync.Once
 )
 
+func GetSessMgr() *SessionManager {
+	InitSessionService()
+	return SessMgr
+}
+
 func InitSessionService() {
 	initOnce.Do(func() {
 		SessMgr = &SessionManager{
@@ -41,7 +47,7 @@ func InitSessionService() {
 
 func (sm *SessionManager) startCleanupRoutine() {
 	for {
-		time.Sleep(5 * time.Minute)
+		time.Sleep(5 * time.Minute) // Cleanup interval
 		sm.sess.Range(func(key, value any) bool {
 			session, ok := value.(*Session)
 			if !ok || session == nil {
@@ -59,7 +65,7 @@ func (sm *SessionManager) NewSession(UserID string) *Session {
 	// Generate a new session ID and key
 	// check if session already exists
 	newID := uuid.New().String()
-	for _, ok := sm.sess.Load(newID); ok; newID = uuid.New().String() {
+	for _, ok := sm.sess.Load(newID); !ok; newID = uuid.New().String() {
 	}
 
 	// Generate a random 32-byte key for AES-256
@@ -71,7 +77,7 @@ func (sm *SessionManager) NewSession(UserID string) *Session {
 		ID:        newID,
 		Key:       newKey,
 		UserID:    UserID,
-		ExpiresAt: time.Now().Add(60 * time.Minute).Unix(), // 60 minutes expiration
+		ExpiresAt: time.Now().Add(2 * time.Minute).Unix(), // 2 minutes expiration
 	}
 
 	sm.sess.Store(newID, newSession)
@@ -103,6 +109,19 @@ func (sm *SessionManager) NewRegSession(UserID string) *Session {
 	return newSession
 }
 
+func (sm *SessionManager) getSession(sessionID string) (*Session, error) {
+	value, ok := sm.sess.Load(sessionID)
+	if !ok {
+		return nil, errors.New("session not found")
+	}
+	session, ok := value.(*Session)
+	if !ok || session == nil || !session.isAlive() {
+		sm.sess.Delete(sessionID)
+		return nil, errors.New("session expired or invalid")
+	}
+	return session, nil
+}
+
 func (s *Session) isAlive() bool {
 	// Check if the session is still valid based on ExpiresAt
 	return s.ExpiresAt > time.Now().Unix()
@@ -120,32 +139,42 @@ func (sm *SessionManager) DeleteSession(sessionID string) {
 }
 
 // Not required now
-func (sm *SessionManager) GetUser(sessionID string) (string, bool) {
-	value, ok := sm.sess.Load(sessionID)
-	if !ok {
-		return "", false
+func (sm *SessionManager) GetUser(sessionID string) (string, error) {
+	session, err := sm.getSession(sessionID)
+	if err != nil {
+		return "", err
 	}
-	session, ok := value.(*Session)
-	if !ok || session == nil || !session.isAlive() {
-		sm.sess.Delete(sessionID)
-		return "", false
-	}
-	// Refresh the session expiration time
-	session.Refresh()
-	return session.UserID, true
+	return session.UserID, nil
 }
 
-func (sm *SessionManager) GetKey(sessionID string) ([]byte, bool) {
-	value, ok := sm.sess.Load(sessionID)
-	if !ok {
-		return nil, false
+func (sm *SessionManager) GetKey(sessionID string) ([]byte, error) {
+
+	session, err := sm.getSession(sessionID)
+	if err != nil {
+		return nil, err
 	}
-	session, ok := value.(*Session)
-	if !ok || session == nil || !session.isAlive() {
-		sm.sess.Delete(sessionID)
-		return nil, false
+
+	return session.Key, nil
+}
+
+func (sm *SessionManager) GetExpTime(sessionID string) (int64, error) {
+	session, err := sm.getSession(sessionID)
+	if err != nil {
+		return -1, err
 	}
-	// Refresh the session expiration time
-	session.Refresh()
-	return session.Key, true
+	return session.ExpiresAt, nil
+}
+
+func (sm *SessionManager) Refresh(sessionID string, minutes int) (int64, error) {
+	session, err := sm.getSession(sessionID)
+	if err != nil {
+		return -1, err
+	}
+	t := time.Now().Add(time.Duration(minutes) * time.Minute).Unix()
+
+	if session.ExpiresAt < t {
+		session.ExpiresAt = t
+	}
+
+	return session.ExpiresAt, nil
 }

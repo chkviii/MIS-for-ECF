@@ -14,8 +14,12 @@ type UserRepository struct {
 var userRepoOnce sync.Once
 var userRepo *UserRepository
 
-func GetUserRepo(db *gorm.DB) *UserRepository {
+func GetUserRepo() *UserRepository {
 	userRepoOnce.Do(func() {
+		db, err := GetDB()
+		if err != nil {
+			panic("failed to connect database")
+		}
 		userRepo = &UserRepository{db: db}
 	})
 	return userRepo

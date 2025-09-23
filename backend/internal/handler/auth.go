@@ -2,14 +2,46 @@ package handler
 
 import (
 	"net/http"
-	"strings"
-
-	"crypto/ed25519"
 
 	"mypage-backend/internal/repo"
 	"mypage-backend/internal/service"
 	"mypage-backend/internal/util"
 )
+
+func PreloginHandlerFunc(w http.ResponseWriter, r *http.Request) {
+	var req service.PreLoginRequest
+	err := util.ParseJSONBody(r, &req)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	// handle prelogin logic
+	userSvc := service.NewUserService(repo.GetUserRepo(), "")
+	resp, err := userSvc.PreLogin(req)
+	if err != nil {
+		http.Error(w, "Prelogin failed: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// save session id  and expiration time in cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    resp.SessID,
+		HttpOnly: true,
+		Secure:   true,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_expire",
+		Value:    resp.SessExpire,
+		HttpOnly: true,
+		Secure:   true,
+	})
+
+	// send response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"session_id":"` + resp.SessID + `","server_pubkey":"` + resp.SrvPubKey + `","challenge":"` + resp.Challenge + `"}`))
+}
 
 // register page init
 func RegisterHandler() http.Handler {
@@ -18,7 +50,7 @@ func RegisterHandler() http.Handler {
 		http.ServeFile(w, r, util.Html_Path("register.html"))
 		// send server public key to the client
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"pubkey":"` + string(util.SrvPubKey()) + `"}`))
+		w.Write([]byte(`{"pubkey":"` + string(util.SrvEncPubKey()) + `"}`))
 
 	})
 }
@@ -29,62 +61,44 @@ func RegisterHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 // login handler
 func LoginHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	//get login type username and password from the form
-	loginType := r.FormValue("login_type")
-	salt := r.FormValue("salt")
-	sig := r.FormValue("password")
-	username := r.FormValue(loginType)
-
-	// Initialize database connection
-	db, err := repo.GetDB()
+	var req service.LoginRequest
+	err := util.ParseJSONBody(r, &req)
 	if err != nil {
-		http.Error(w, "It's not your fault. \n Database Offline", http.StatusInternalServerError)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-
-	userRepo := repo.GetUserRepo(db)
-
-	var user *repo.User
-	// Check if the user exists based on the login type
-	switch loginType {
-	case "username":
-		user, err = userRepo.GetByUsername(username)
-	case "email":
-		user, err = userRepo.GetByEmail(strings.ToLower(username))
-	case "uid":
-		user, err = userRepo.GetByID(username)
-	default:
-		http.Error(w, "Invalid login type", http.StatusBadRequest)
-		return
-	}
+	// get session id from cookie
+	cookie, err := r.Cookie("session_id")
 	if err != nil {
-		http.Error(w, "User not found", http.StatusUnauthorized)
+		http.Error(w, "Session cookie not found", http.StatusUnauthorized)
+		return
+	}
+	sessID := cookie.Value
+
+	// handle login logic
+	userSvc := service.NewUserService(repo.GetUserRepo(), "")
+	resp, err := userSvc.Login(sessID, req)
+
+	if err != nil {
+		http.Error(w, "Login failed: "+err.Error(), http.StatusUnauthorized)
 		return
 	}
 
-	if ed25519.Verify([]byte(user.Password), []byte(salt), []byte(sig)) {
-		s := service.SessMgr.NewSession(string(user.ID))
-		http.SetCookie(w, &http.Cookie{
-			Name:     "session_id",
-			Value:    s.ID,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   true,
-		})
+	if !resp.Success {
+		http.Error(w, "Login failed", http.StatusUnauthorized)
+		return
+	} else {
+		// update session cookie expiration time
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_expire",
-			Value:    string(s.ExpiresAt),
-			Path:     "/",
+			Value:    resp.SessExpire,
 			HttpOnly: true,
 			Secure:   true,
 		})
-	} else {
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-		return
+
+		// send response
+		w.WriteHeader(http.StatusOK)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-
 }
 
 // logout handler

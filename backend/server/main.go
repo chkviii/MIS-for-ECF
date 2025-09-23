@@ -40,6 +40,7 @@ func main() {
 	r.Handle("/blog/post", handler.BlogHandler())            // Blog post page with postID /blog/123?id=123
 	r.Handle("/api/v0/post/{postID}", handler.PostHandler()) // Blog post handler
 	r.Post("api/v0/login", handler.LoginHandlerFunc)         // Login handler
+	r.Post("api/v0/prelogin", handler.PreloginHandlerFunc)   // Prelogin handler
 
 	r.Group(func(r chi.Router) {
 		r.Use(midware.AuthMiddleware)                       // Apply authentication middleware

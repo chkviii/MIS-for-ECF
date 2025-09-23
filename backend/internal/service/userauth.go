@@ -1,12 +1,14 @@
 package service
 
 import (
+	"bytes"
+	"encoding/base64"
 	"errors"
-	"mypage-backend/internal/repo"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
+	"mypage-backend/internal/repo"
+	"mypage-backend/internal/util"
+
 	"gorm.io/gorm"
 )
 
@@ -15,9 +17,19 @@ type UserService struct {
 	jwtSecret string
 }
 
-type LoginRequest struct {
+type PreLoginRequest struct {
 	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+}
+
+type PreLoginResponse struct {
+	SessID     string `json:"session_id"`
+	SessExpire string `json:"session_expire"`
+	SrvPubKey  string `json:"server_pubkey"` // server public key
+	Challenge  string `json:"challenge"`     // encrypted session key
+}
+
+type LoginRequest struct {
+	Solution string `json:"solution" validate:"required"`
 }
 
 type RegisterRequest struct {
@@ -28,8 +40,8 @@ type RegisterRequest struct {
 }
 
 type AuthResponse struct {
-	Token string    `json:"token"`
-	User  repo.User `json:"user"`
+	Success    bool   `json:"success"`
+	SessExpire string `json:"session_expire"`
 }
 
 func NewUserService(userRepo *repo.UserRepository, jwtSecret string) *UserService {
@@ -41,78 +53,77 @@ func NewUserService(userRepo *repo.UserRepository, jwtSecret string) *UserServic
 
 func (s *UserService) Register(req RegisterRequest) (*AuthResponse, error) {
 	// 检查用户是否已存在
-	_, err := s.userRepo.GetByUsername(req.Username)
-	if err == nil {
-		return nil, errors.New("用户名已存在")
-	}
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	}
-
-	// 密码加密
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
-
-	// 创建用户
-	user := &repo.User{
-		Username: req.Username,
-		Password: string(hashedPassword),
-		Role:     "user",
-	}
-
-	if err := s.userRepo.Create(user); err != nil {
-		return nil, err
-	}
-
-	// 生成JWT令牌
-	token, err := s.generateToken(user.ID, user.Username, user.Role)
-	if err != nil {
-		return nil, err
-	}
-
-	return &AuthResponse{
-		Token: token,
-		User:  *user,
-	}, nil
+	return nil, nil
 }
 
-func (s *UserService) Login(req LoginRequest) (*AuthResponse, error) {
-	// 查找用户
-	user, err := s.userRepo.GetByUsername(req.Username)
+// prelogin: check if user exists and create a session with challenge
+func (s *UserService) PreLogin(req PreLoginRequest) (PreLoginResponse, error) {
+	user, err := s.userRepo.GetByEmail(req.Username)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("用户名或密码错误")
+		user, err = s.userRepo.GetByUsername(req.Username)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return PreLoginResponse{}, errors.New("user not found")
+			}
+			return PreLoginResponse{}, err
 		}
-		return nil, err
 	}
 
-	// 验证密码
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return nil, errors.New("用户名或密码错误")
+	// create a new session for login action
+	session := GetSessMgr().NewSession(util.UitoA(user.ID))
+
+	// decode user's public key
+	userPubKey, err := base64.StdEncoding.DecodeString(user.Password)
+	if err != nil {
+		return PreLoginResponse{}, err
 	}
 
-	// 生成JWT令牌
-	token, err := s.generateToken(user.ID, user.Username, user.Role)
+	// encrypt session key and send to client
+	challenge, err := util.ECDHEncrypt(userPubKey, session.Key)
+	if err != nil {
+		return PreLoginResponse{}, err
+	}
+
+	return PreLoginResponse{
+		SessID:     session.ID,
+		SessExpire: time.Unix(session.ExpiresAt, 0).Format(time.RFC3339),
+		SrvPubKey:  base64.StdEncoding.EncodeToString(util.SrvEncPubKey()),
+		Challenge:  base64.StdEncoding.EncodeToString(challenge),
+	}, nil
+}
+
+// login: verify the solution
+func (s *UserService) Login(sessID string, req LoginRequest) (*AuthResponse, error) {
+	sessKey, err := GetSessMgr().GetKey(sessID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &AuthResponse{
-		Token: token,
-		User:  *user,
-	}, nil
-}
+	answerBytes := util.Sha256(sessKey)
 
-func (s *UserService) generateToken(userID uint, username, role string) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id":  userID,
-		"username": username,
-		"role":     role,
-		"exp":      time.Now().Add(time.Hour * 24 * 7).Unix(), // 7天过期
+	// decrypt the solution using session key
+	solutionBytes, err := util.AESDecrypt(sessKey, []byte(req.Solution))
+	if err != nil {
+		return nil, err
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(s.jwtSecret))
+	if solutionBytes == nil && bytes.Equal(solutionBytes, answerBytes) {
+		t, err := GetSessMgr().Refresh(sessID, 60)
+		if err != nil {
+			return nil, err
+		}
+		return &AuthResponse{
+			Success:    true,
+			SessExpire: time.Unix(t, 0).Format(time.RFC3339),
+		}, nil
+	} else {
+		t, err := GetSessMgr().GetExpTime(sessID)
+		if err != nil {
+			return nil, err
+		}
+		return &AuthResponse{
+			Success:    false,
+			SessExpire: time.Unix(t, 0).Format(time.RFC3339),
+		}, nil
+	}
 }

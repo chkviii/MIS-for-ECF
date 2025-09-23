@@ -10,7 +10,31 @@ class AuthManager {
         this.privateKey = null;
         this.publicKey = null;
     }
-   
+
+    async prelogin(username) {
+        const response = await fetch(`/api/v0/prelogin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ 'username': username })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.salt){
+                return data.salt;
+            } else if (data.error) {
+                throw new Error(data.error);
+            } else {
+                throw new Error('Invalid prelogin response');
+            }
+        } else {
+            throw new Error('Prelogin failed');
+        }
+    }
+
     // 计算密码哈希值
     async hashPassword(password) {
         const encoder = new TextEncoder();
