@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS volunteer_projects (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (volunteer_id) REFERENCES volunteers(id),
     FOREIGN KEY (project_id) REFERENCES projects(id),
-    UNIQUE(volunteer_id, project_id)
+    
 );
 
 -- 员工-项目关联表
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS employee_projects (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(id),
     FOREIGN KEY (project_id) REFERENCES projects(id),
-    UNIQUE(employee_id, project_id)
+    
 );
 
 -- 资金-项目关联表

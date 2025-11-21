@@ -9,15 +9,23 @@
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-lg);
     z-index: 2000;
-    transform: translateX(0);
+    transform: translateX(400px);
+    opacity: 0;
     transition: all 0.3s ease;
     font-weight: 500;
     min-width: 300px;
     max-width: 400px;
+    pointer-events: none;
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .toast.hidden {
-    transform: translateX(100%);
+    transform: translateX(400px);
     opacity: 0;
     pointer-events: none;
 }

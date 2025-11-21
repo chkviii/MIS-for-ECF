@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"mypage-backend/internal/config"
 	"mypage-backend/internal/handler"
@@ -45,6 +46,13 @@ func main() {
 	giftRepo := repo.NewGiftRepository(db)
 	inventoryTransactionRepo := repo.NewInventoryTransactionRepository(db)
 	deliveryRepo := repo.NewDeliveryRepository(db)
+	
+	// 关系表 repositories
+	volunteerProjectRepo := repo.NewVolunteerProjectRepository(db)
+	employeeProjectRepo := repo.NewEmployeeProjectRepository(db)
+	fundProjectRepo := repo.NewFundProjectRepository(db)
+	donationInventoryRepo := repo.NewDonationInventoryRepository(db)
+	scheduleRepo := repo.NewScheduleRepository(db)
 
 	// Initialize services
 	projectService := services.NewProjectService(projectRepo, locationRepo)
@@ -63,6 +71,13 @@ func main() {
 	giftService := services.NewGiftService(giftRepo)
 	inventoryTransactionService := services.NewInventoryTransactionService(inventoryTransactionRepo)
 	deliveryService := services.NewDeliveryService(deliveryRepo)
+	
+	// 关系表 services
+	volunteerProjectService := services.NewVolunteerProjectService(volunteerProjectRepo)
+	employeeProjectService := services.NewEmployeeProjectService(employeeProjectRepo)
+	fundProjectService := services.NewFundProjectService(fundProjectRepo)
+	donationInventoryService := services.NewDonationInventoryService(donationInventoryRepo)
+	scheduleService := services.NewScheduleService(scheduleRepo)
 
 	// Initialize handlers
 	erpHandler := handler.NewERPHandler(
@@ -82,6 +97,11 @@ func main() {
 		giftService,
 		inventoryTransactionService,
 		deliveryService,
+		volunteerProjectService,
+		employeeProjectService,
+		fundProjectService,
+		donationInventoryService,
+		scheduleService,
 	)
 
 	// Initialize Gin router
@@ -109,7 +129,16 @@ func main() {
 	// Public routes
 	r.GET("/", handler.HomeHandler())
 	r.GET("/erp-management.html", func(c *gin.Context) {
-		c.File(cfg.Html_Path + "/erp-management.html")
+		c.File(filepath.Join(cfg.Html_Path, "erp-management.html"))
+	})
+	r.GET("/index.html", func(c *gin.Context) {
+		c.File(filepath.Join(cfg.Html_Path, "index.html"))
+	})
+	r.GET("/blog.html", func(c *gin.Context) {
+		c.File(filepath.Join(cfg.Html_Path, "blog.html"))
+	})
+	r.GET("/register.html", func(c *gin.Context) {
+		c.File(filepath.Join(cfg.Html_Path, "register.html"))
 	})
 
 	// ERP API routes - v1
@@ -260,6 +289,52 @@ func main() {
 			deliveries.POST("", erpHandler.CreateDelivery)
 			deliveries.PUT("/:id", erpHandler.UpdateDelivery)
 			deliveries.DELETE("/:id", erpHandler.DeleteDelivery)
+			}
+		
+		// 关系表路由
+		// Volunteer-Projects
+		volunteerProjects := v1.Group("/volunteer-projects")
+		{
+			volunteerProjects.GET("", erpHandler.GetAllVolunteerProjects)
+			volunteerProjects.POST("", erpHandler.CreateVolunteerProject)
+			volunteerProjects.PUT("/:id", erpHandler.UpdateVolunteerProject)
+			volunteerProjects.DELETE("/:id", erpHandler.DeleteVolunteerProject)
+		}
+
+		// Employee-Projects
+		employeeProjects := v1.Group("/employee-projects")
+		{
+			employeeProjects.GET("", erpHandler.GetAllEmployeeProjects)
+			employeeProjects.POST("", erpHandler.CreateEmployeeProject)
+			employeeProjects.PUT("/:id", erpHandler.UpdateEmployeeProject)
+			employeeProjects.DELETE("/:id", erpHandler.DeleteEmployeeProject)
+		}
+
+		// Fund-Projects
+		fundProjects := v1.Group("/fund-projects")
+		{
+			fundProjects.GET("", erpHandler.GetAllFundProjects)
+			fundProjects.POST("", erpHandler.CreateFundProject)
+			fundProjects.PUT("/:id", erpHandler.UpdateFundProject)
+			fundProjects.DELETE("/:id", erpHandler.DeleteFundProject)
+		}
+
+		// Donation-Inventory
+		donationInventory := v1.Group("/donation-inventory")
+		{
+			donationInventory.GET("", erpHandler.GetAllDonationInventories)
+			donationInventory.POST("", erpHandler.CreateDonationInventory)
+			donationInventory.PUT("/:id", erpHandler.UpdateDonationInventory)
+			donationInventory.DELETE("/:id", erpHandler.DeleteDonationInventory)
+		}
+
+		// Schedules
+		schedules := v1.Group("/schedules")
+		{
+			schedules.GET("", erpHandler.GetAllSchedules)
+			schedules.POST("", erpHandler.CreateSchedule)
+			schedules.PUT("/:id", erpHandler.UpdateSchedule)
+			schedules.DELETE("/:id", erpHandler.DeleteSchedule)
 		}
 	}
 

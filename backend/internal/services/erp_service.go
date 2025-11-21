@@ -109,7 +109,6 @@ func (s *DonorService) CreateDonor(donor *models.Donor) error {
 	// 生成捐赠者ID
 	donor.DonorID = fmt.Sprintf("DNR-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	donor.Status = "active"
-	donor.EnrollmentDate = time.Now()
 
 	return s.donorRepo.Create(donor)
 }
@@ -164,11 +163,10 @@ func (s *DonationService) CreateDonation(donation *models.Donation) error {
 
 	// 生成捐赠ID
 	donation.DonationID = fmt.Sprintf("DON-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
-	donation.DonationDate = time.Now()
-
-	// 生成收据编号
-	if donation.TaxDeductible {
-		donation.ReceiptNumber = fmt.Sprintf("RCP-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
+	
+	// 如果没有提供捐赠日期，使用当前时间
+	if donation.DonationDate.IsZero() {
+		donation.DonationDate = time.Now()
 	}
 
 	return s.donationRepo.Create(donation)
@@ -682,4 +680,229 @@ func (s *DeliveryService) UpdateDelivery(delivery *models.Delivery) error {
 
 func (s *DeliveryService) DeleteDelivery(id uint) error {
 	return s.deliveryRepo.Delete(id)
+}
+
+// VolunteerProjectService 志愿者-项目关联服务
+type VolunteerProjectService struct {
+	repo *repo.VolunteerProjectRepository
+}
+
+func NewVolunteerProjectService(repo *repo.VolunteerProjectRepository) *VolunteerProjectService {
+	return &VolunteerProjectService{repo: repo}
+}
+
+func (s *VolunteerProjectService) Create(vp *models.VolunteerProject) error {
+	if vp.VolunteerID == 0 || vp.ProjectID == 0 {
+		return errors.New("志愿者ID和项目ID不能为空")
+	}
+	vp.Status = "active"
+	return s.repo.Create(vp)
+}
+
+func (s *VolunteerProjectService) GetByID(id uint) (*models.VolunteerProject, error) {
+	return s.repo.GetByID(id)
+}
+
+func (s *VolunteerProjectService) GetAll() ([]models.VolunteerProject, error) {
+	return s.repo.GetAll()
+}
+
+func (s *VolunteerProjectService) GetByVolunteerID(volunteerID uint) ([]models.VolunteerProject, error) {
+	return s.repo.GetByVolunteerID(volunteerID)
+}
+
+func (s *VolunteerProjectService) GetByProjectID(projectID uint) ([]models.VolunteerProject, error) {
+	return s.repo.GetByProjectID(projectID)
+}
+
+func (s *VolunteerProjectService) Update(vp *models.VolunteerProject) error {
+	return s.repo.Update(vp)
+}
+
+func (s *VolunteerProjectService) Delete(id uint) error {
+	return s.repo.Delete(id)
+}
+
+// EmployeeProjectService 员工-项目关联服务
+type EmployeeProjectService struct {
+	repo *repo.EmployeeProjectRepository
+}
+
+func NewEmployeeProjectService(repo *repo.EmployeeProjectRepository) *EmployeeProjectService {
+	return &EmployeeProjectService{repo: repo}
+}
+
+func (s *EmployeeProjectService) Create(ep *models.EmployeeProject) error {
+	if ep.EmployeeID == 0 || ep.ProjectID == 0 {
+		return errors.New("员工ID和项目ID不能为空")
+	}
+	return s.repo.Create(ep)
+}
+
+func (s *EmployeeProjectService) GetByID(id uint) (*models.EmployeeProject, error) {
+	return s.repo.GetByID(id)
+}
+
+func (s *EmployeeProjectService) GetAll() ([]models.EmployeeProject, error) {
+	return s.repo.GetAll()
+}
+
+func (s *EmployeeProjectService) GetByEmployeeID(employeeID uint) ([]models.EmployeeProject, error) {
+	return s.repo.GetByEmployeeID(employeeID)
+}
+
+func (s *EmployeeProjectService) GetByProjectID(projectID uint) ([]models.EmployeeProject, error) {
+	return s.repo.GetByProjectID(projectID)
+}
+
+func (s *EmployeeProjectService) Update(ep *models.EmployeeProject) error {
+	return s.repo.Update(ep)
+}
+
+func (s *EmployeeProjectService) Delete(id uint) error {
+	return s.repo.Delete(id)
+}
+
+// FundProjectService 基金-项目关联服务
+type FundProjectService struct {
+	repo *repo.FundProjectRepository
+}
+
+func NewFundProjectService(repo *repo.FundProjectRepository) *FundProjectService {
+	return &FundProjectService{repo: repo}
+}
+
+func (s *FundProjectService) Create(fp *models.FundProject) error {
+	if fp.TransactionID == 0 || fp.ProjectID == 0 || fp.FundID == 0 {
+		return errors.New("交易ID、项目ID和基金ID不能为空")
+	}
+	if fp.AllocatedAmount <= 0 {
+		return errors.New("分配金额必须大于0")
+	}
+	return s.repo.Create(fp)
+}
+
+func (s *FundProjectService) GetByID(id uint) (*models.FundProject, error) {
+	return s.repo.GetByID(id)
+}
+
+func (s *FundProjectService) GetAll() ([]models.FundProject, error) {
+	return s.repo.GetAll()
+}
+
+func (s *FundProjectService) GetByProjectID(projectID uint) ([]models.FundProject, error) {
+	return s.repo.GetByProjectID(projectID)
+}
+
+func (s *FundProjectService) GetByFundID(fundID uint) ([]models.FundProject, error) {
+	return s.repo.GetByFundID(fundID)
+}
+
+func (s *FundProjectService) Update(fp *models.FundProject) error {
+	return s.repo.Update(fp)
+}
+
+func (s *FundProjectService) Delete(id uint) error {
+	return s.repo.Delete(id)
+}
+
+// DonationInventoryService 捐赠-库存关联服务（实物捐赠）
+type DonationInventoryService struct {
+	repo *repo.DonationInventoryRepository
+}
+
+func NewDonationInventoryService(repo *repo.DonationInventoryRepository) *DonationInventoryService {
+	return &DonationInventoryService{repo: repo}
+}
+
+func (s *DonationInventoryService) Create(di *models.DonationInventory) error {
+	if di.DonorID == 0 || di.InventoryID == 0 {
+		return errors.New("捐赠者ID和库存ID不能为空")
+	}
+	if di.Quantity <= 0 {
+		di.Quantity = 1
+	}
+	return s.repo.Create(di)
+}
+
+func (s *DonationInventoryService) GetByID(id uint) (*models.DonationInventory, error) {
+	return s.repo.GetByID(id)
+}
+
+func (s *DonationInventoryService) GetAll() ([]models.DonationInventory, error) {
+	return s.repo.GetAll()
+}
+
+func (s *DonationInventoryService) GetByDonorID(donorID uint) ([]models.DonationInventory, error) {
+	return s.repo.GetByDonorID(donorID)
+}
+
+func (s *DonationInventoryService) GetByInventoryID(inventoryID uint) ([]models.DonationInventory, error) {
+	return s.repo.GetByInventoryID(inventoryID)
+}
+
+func (s *DonationInventoryService) Update(di *models.DonationInventory) error {
+	return s.repo.Update(di)
+}
+
+func (s *DonationInventoryService) Delete(id uint) error {
+	return s.repo.Delete(id)
+}
+
+// ScheduleService 调度服务
+type ScheduleService struct {
+	repo *repo.ScheduleRepository
+}
+
+func NewScheduleService(repo *repo.ScheduleRepository) *ScheduleService {
+	return &ScheduleService{repo: repo}
+}
+
+func (s *ScheduleService) Create(schedule *models.Schedule) error {
+	if schedule.PersonID == 0 || schedule.PersonType == "" {
+		return errors.New("人员ID和人员类型不能为空")
+	}
+	if schedule.PersonType != "volunteer" && schedule.PersonType != "employee" {
+		return errors.New("人员类型必须是volunteer或employee")
+	}
+	
+	// 生成调度ID
+	schedule.ScheduleID = fmt.Sprintf("SCH-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
+	schedule.Status = "scheduled"
+	
+	// 计算工作小时数
+	if schedule.HoursWorked == 0 && schedule.StartTime != "" && schedule.EndTime != "" {
+		// 这里可以添加时间计算逻辑
+		schedule.HoursWorked = 8.0 // 默认值
+	}
+	
+	return s.repo.Create(schedule)
+}
+
+func (s *ScheduleService) GetByID(id uint) (*models.Schedule, error) {
+	return s.repo.GetByID(id)
+}
+
+func (s *ScheduleService) GetAll() ([]models.Schedule, error) {
+	return s.repo.GetAll()
+}
+
+func (s *ScheduleService) GetByPersonID(personID uint, personType string) ([]models.Schedule, error) {
+	return s.repo.GetByPersonID(personID, personType)
+}
+
+func (s *ScheduleService) GetByProjectID(projectID uint) ([]models.Schedule, error) {
+	return s.repo.GetByProjectID(projectID)
+}
+
+func (s *ScheduleService) GetByDateRange(startDate, endDate time.Time) ([]models.Schedule, error) {
+	return s.repo.GetByDateRange(startDate, endDate)
+}
+
+func (s *ScheduleService) Update(schedule *models.Schedule) error {
+	return s.repo.Update(schedule)
+}
+
+func (s *ScheduleService) Delete(id uint) error {
+	return s.repo.Delete(id)
 }

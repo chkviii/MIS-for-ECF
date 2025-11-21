@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP 管理系统</title>
+    <title>ERP Management System</title>
     <link rel="stylesheet" href="/static/css/base/reset.css">
     <link rel="stylesheet" href="/static/css/base/typography.css">
     <link rel="stylesheet" href="/static/css/components/buttons.css">
@@ -14,98 +14,123 @@
 </head>
 <body>
     <div class="erp-container">
-        <!-- 侧边栏导航 -->
-        <aside class="sidebar">
-            <div class="logo">
-                <h2>ERP 系统</h2>
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <h2>ERP System</h2>
+                </div>
+                <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
+                    <span class="toggle-icon">«</span>
+                </button>
             </div>
             <nav class="nav-menu">
+                <!-- Core Management -->
                 <div class="nav-section">
-                    <h3>核心管理</h3>
-                    <a href="#" class="nav-item" data-entity="projects">项目管理</a>
-                    <a href="#" class="nav-item" data-entity="donors">捐赠者管理</a>
-                    <a href="#" class="nav-item" data-entity="donations">捐赠记录</a>
-                    <a href="#" class="nav-item" data-entity="volunteers">志愿者管理</a>
-                    <a href="#" class="nav-item" data-entity="employees">员工管理</a>
-                    <a href="#" class="nav-item" data-entity="locations">地点管理</a>
+                    <h3>Core Management</h3>
+                    <a href="#" class="nav-item" data-entity="projects">Projects</a>
+                    <a href="#" class="nav-item" data-entity="donors">Donors</a>
+                    <a href="#" class="nav-item" data-entity="donations">Donations</a>
+                    <a href="#" class="nav-item" data-entity="volunteers">Volunteers</a>
+                    <a href="#" class="nav-item" data-entity="employees">Employees</a>
+                    <a href="#" class="nav-item" data-entity="locations">Locations</a>
                 </div>
+
+                <!-- Financial Management -->
                 <div class="nav-section">
-                    <h3>财务管理</h3>
-                    <a href="#" class="nav-item" data-entity="funds">基金管理</a>
-                    <a href="#" class="nav-item" data-entity="expenses">支出管理</a>
-                    <a href="#" class="nav-item" data-entity="transactions">交易记录</a>
-                    <a href="#" class="nav-item" data-entity="purchases">采购管理</a>
-                    <a href="#" class="nav-item" data-entity="payrolls">薪资管理</a>
+                    <h3>Financial</h3>
+                    <a href="#" class="nav-item" data-entity="funds">Funds</a>
+                    <a href="#" class="nav-item" data-entity="expenses">Expenses</a>
+                    <a href="#" class="nav-item" data-entity="transactions">Transactions</a>
+                    <a href="#" class="nav-item" data-entity="purchases">Purchases</a>
+                    <a href="#" class="nav-item" data-entity="payrolls">Payrolls</a>
                 </div>
+
+                <!-- Inventory Management -->
                 <div class="nav-section">
-                    <h3>库存管理</h3>
-                    <a href="#" class="nav-item" data-entity="inventory">库存管理</a>
-                    <a href="#" class="nav-item" data-entity="gift-types">礼品类型</a>
-                    <a href="#" class="nav-item" data-entity="gifts">礼品管理</a>
-                    <a href="#" class="nav-item" data-entity="inventory-transactions">库存交易</a>
-                    <a href="#" class="nav-item" data-entity="deliveries">配送管理</a>
+                    <h3>Inventory</h3>
+                    <a href="#" class="nav-item" data-entity="inventory">Inventory</a>
+                    <a href="#" class="nav-item" data-entity="gift-types">Gift Types</a>
+                    <a href="#" class="nav-item" data-entity="gifts">Gifts</a>
+                    <a href="#" class="nav-item" data-entity="inventory-transactions">Inv. Transactions</a>
+                    <a href="#" class="nav-item" data-entity="deliveries">Deliveries</a>
+                </div>
+
+                <!-- Relationship Management -->
+                <div class="nav-section">
+                    <h3>Relationships</h3>
+                    <a href="#" class="nav-item" data-entity="volunteer-projects">Volunteer-Projects</a>
+                    <a href="#" class="nav-item" data-entity="employee-projects">Employee-Projects</a>
+                    <a href="#" class="nav-item" data-entity="fund-projects">Fund-Projects</a>
+                    <a href="#" class="nav-item" data-entity="donation-inventory">Donation Inventory</a>
+                    <a href="#" class="nav-item" data-entity="schedules">Schedules</a>
                 </div>
             </nav>
         </aside>
 
-        <!-- 主内容区 -->
-        <main class="main-content">
-            <!-- 顶部工具栏 -->
+        <!-- Main Content Area -->
+        <main class="main-content" id="main-content">
+            <!-- Top Toolbar -->
             <div class="toolbar">
-                <h1 id="page-title">项目管理</h1>
+                <h1 id="page-title">Project Management</h1>
                 <button class="btn btn-primary" id="btn-add">
-                    <span>+ 新增</span>
+                    <span>+ Add New</span>
                 </button>
             </div>
 
-            <!-- 搜索过滤区 -->
+            <!-- Search Filter Section -->
             <div class="filter-section">
                 <div class="search-controls" id="search-controls">
-                    <!-- 动态生成的搜索框 -->
+                    <!-- Dynamically generated search boxes -->
                 </div>
-                <button class="btn btn-secondary" id="btn-search">搜索</button>
-                <button class="btn btn-secondary" id="btn-reset">重置</button>
+                <button class="btn btn-secondary" id="btn-search">Search</button>
+                <button class="btn btn-secondary" id="btn-reset">Reset</button>
             </div>
 
-            <!-- 数据表格 -->
+            <!-- Data Table -->
             <div class="table-container">
                 <table class="data-table" id="data-table">
                     <thead id="table-head">
-                        <!-- 动态生成的表头 -->
+                        <!-- Dynamically generated table headers -->
                     </thead>
                     <tbody id="table-body">
-                        <!-- 动态生成的数据行 -->
+                        <!-- Dynamically generated data rows -->
                     </tbody>
                 </table>
             </div>
 
-            <!-- 分页 -->
+            <!-- Pagination -->
             <div class="pagination">
-                <span id="data-count">总计: 0 条</span>
+                <span id="data-count">Total: 0 records</span>
             </div>
         </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>2025@White Water</p>
+        </footer>
     </div>
 
-    <!-- 编辑/新增模态框 -->
+    <!-- Edit/Add Modal -->
     <div class="modal" id="edit-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modal-title">编辑</h2>
+                <h2 id="modal-title">Edit</h2>
                 <button class="modal-close" id="modal-close">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="edit-form">
-                    <!-- 动态生成的表单字段 -->
+                    <!-- Dynamically generated form fields -->
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" id="btn-cancel">取消</button>
-                <button class="btn btn-primary" id="btn-save">保存</button>
+                <button class="btn btn-secondary" id="btn-cancel">Cancel</button>
+                <button class="btn btn-primary" id="btn-save">Save</button>
             </div>
         </div>
     </div>
 
-    <!-- 提示消息 -->
+    <!-- Toast Message -->
     <div class="toast" id="toast">
         <span id="toast-message"></span>
     </div>

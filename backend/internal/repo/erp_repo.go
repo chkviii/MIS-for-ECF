@@ -880,3 +880,239 @@ func (r *DeliveryRepository) Update(delivery *models.Delivery) error {
 func (r *DeliveryRepository) Delete(id uint) error {
 	return r.db.Delete(&models.Delivery{}, id).Error
 }
+
+// VolunteerProjectRepository 志愿者-项目关联仓储
+type VolunteerProjectRepository struct {
+	db *gorm.DB
+}
+
+func NewVolunteerProjectRepository(db *gorm.DB) *VolunteerProjectRepository {
+	return &VolunteerProjectRepository{db: db}
+}
+
+func (r *VolunteerProjectRepository) Create(vp *models.VolunteerProject) error {
+	return r.db.Create(vp).Error
+}
+
+func (r *VolunteerProjectRepository) GetByID(id uint) (*models.VolunteerProject, error) {
+	var vp models.VolunteerProject
+	err := r.db.Preload("Volunteer").Preload("Project").First(&vp, id).Error
+	return &vp, err
+}
+
+func (r *VolunteerProjectRepository) GetAll() ([]models.VolunteerProject, error) {
+	var vps []models.VolunteerProject
+	err := r.db.Preload("Volunteer").Preload("Project").Find(&vps).Error
+	return vps, err
+}
+
+func (r *VolunteerProjectRepository) GetByVolunteerID(volunteerID uint) ([]models.VolunteerProject, error) {
+	var vps []models.VolunteerProject
+	err := r.db.Where("volunteer_id = ?", volunteerID).Preload("Volunteer").Preload("Project").Find(&vps).Error
+	return vps, err
+}
+
+func (r *VolunteerProjectRepository) GetByProjectID(projectID uint) ([]models.VolunteerProject, error) {
+	var vps []models.VolunteerProject
+	err := r.db.Where("project_id = ?", projectID).Preload("Volunteer").Preload("Project").Find(&vps).Error
+	return vps, err
+}
+
+func (r *VolunteerProjectRepository) Update(vp *models.VolunteerProject) error {
+	return r.db.Save(vp).Error
+}
+
+func (r *VolunteerProjectRepository) Delete(id uint) error {
+	return r.db.Delete(&models.VolunteerProject{}, id).Error
+}
+
+// EmployeeProjectRepository 员工-项目关联仓储
+type EmployeeProjectRepository struct {
+	db *gorm.DB
+}
+
+func NewEmployeeProjectRepository(db *gorm.DB) *EmployeeProjectRepository {
+	return &EmployeeProjectRepository{db: db}
+}
+
+func (r *EmployeeProjectRepository) Create(ep *models.EmployeeProject) error {
+	return r.db.Create(ep).Error
+}
+
+func (r *EmployeeProjectRepository) GetByID(id uint) (*models.EmployeeProject, error) {
+	var ep models.EmployeeProject
+	err := r.db.Preload("Employee").Preload("Project").First(&ep, id).Error
+	return &ep, err
+}
+
+func (r *EmployeeProjectRepository) GetAll() ([]models.EmployeeProject, error) {
+	var eps []models.EmployeeProject
+	err := r.db.Preload("Employee").Preload("Project").Find(&eps).Error
+	return eps, err
+}
+
+func (r *EmployeeProjectRepository) GetByEmployeeID(employeeID uint) ([]models.EmployeeProject, error) {
+	var eps []models.EmployeeProject
+	err := r.db.Where("employee_id = ?", employeeID).Preload("Employee").Preload("Project").Find(&eps).Error
+	return eps, err
+}
+
+func (r *EmployeeProjectRepository) GetByProjectID(projectID uint) ([]models.EmployeeProject, error) {
+	var eps []models.EmployeeProject
+	err := r.db.Where("project_id = ?", projectID).Preload("Employee").Preload("Project").Find(&eps).Error
+	return eps, err
+}
+
+func (r *EmployeeProjectRepository) Update(ep *models.EmployeeProject) error {
+	return r.db.Save(ep).Error
+}
+
+func (r *EmployeeProjectRepository) Delete(id uint) error {
+	return r.db.Delete(&models.EmployeeProject{}, id).Error
+}
+
+// FundProjectRepository 基金-项目关联仓储
+type FundProjectRepository struct {
+	db *gorm.DB
+}
+
+func NewFundProjectRepository(db *gorm.DB) *FundProjectRepository {
+	return &FundProjectRepository{db: db}
+}
+
+func (r *FundProjectRepository) Create(fp *models.FundProject) error {
+	return r.db.Create(fp).Error
+}
+
+func (r *FundProjectRepository) GetByID(id uint) (*models.FundProject, error) {
+	var fp models.FundProject
+	err := r.db.Preload("Transaction").Preload("Project").Preload("Fund").First(&fp, id).Error
+	return &fp, err
+}
+
+func (r *FundProjectRepository) GetAll() ([]models.FundProject, error) {
+	var fps []models.FundProject
+	err := r.db.Preload("Transaction").Preload("Project").Preload("Fund").Find(&fps).Error
+	return fps, err
+}
+
+func (r *FundProjectRepository) GetByProjectID(projectID uint) ([]models.FundProject, error) {
+	var fps []models.FundProject
+	err := r.db.Where("project_id = ?", projectID).Preload("Transaction").Preload("Project").Preload("Fund").Find(&fps).Error
+	return fps, err
+}
+
+func (r *FundProjectRepository) GetByFundID(fundID uint) ([]models.FundProject, error) {
+	var fps []models.FundProject
+	err := r.db.Where("fund_id = ?", fundID).Preload("Transaction").Preload("Project").Preload("Fund").Find(&fps).Error
+	return fps, err
+}
+
+func (r *FundProjectRepository) Update(fp *models.FundProject) error {
+	return r.db.Save(fp).Error
+}
+
+func (r *FundProjectRepository) Delete(id uint) error {
+	return r.db.Delete(&models.FundProject{}, id).Error
+}
+
+// DonationInventoryRepository 捐赠-库存关联仓储
+type DonationInventoryRepository struct {
+	db *gorm.DB
+}
+
+func NewDonationInventoryRepository(db *gorm.DB) *DonationInventoryRepository {
+	return &DonationInventoryRepository{db: db}
+}
+
+func (r *DonationInventoryRepository) Create(di *models.DonationInventory) error {
+	return r.db.Create(di).Error
+}
+
+func (r *DonationInventoryRepository) GetByID(id uint) (*models.DonationInventory, error) {
+	var di models.DonationInventory
+	err := r.db.Preload("Donor").Preload("Inventory").Preload("Project").First(&di, id).Error
+	return &di, err
+}
+
+func (r *DonationInventoryRepository) GetAll() ([]models.DonationInventory, error) {
+	var dis []models.DonationInventory
+	err := r.db.Preload("Donor").Preload("Inventory").Preload("Project").Find(&dis).Error
+	return dis, err
+}
+
+func (r *DonationInventoryRepository) GetByDonorID(donorID uint) ([]models.DonationInventory, error) {
+	var dis []models.DonationInventory
+	err := r.db.Where("donor_id = ?", donorID).Preload("Donor").Preload("Inventory").Preload("Project").Find(&dis).Error
+	return dis, err
+}
+
+func (r *DonationInventoryRepository) GetByInventoryID(inventoryID uint) ([]models.DonationInventory, error) {
+	var dis []models.DonationInventory
+	err := r.db.Where("inventory_id = ?", inventoryID).Preload("Donor").Preload("Inventory").Preload("Project").Find(&dis).Error
+	return dis, err
+}
+
+func (r *DonationInventoryRepository) Update(di *models.DonationInventory) error {
+	return r.db.Save(di).Error
+}
+
+func (r *DonationInventoryRepository) Delete(id uint) error {
+	return r.db.Delete(&models.DonationInventory{}, id).Error
+}
+
+// ScheduleRepository 调度仓储
+type ScheduleRepository struct {
+	db *gorm.DB
+}
+
+func NewScheduleRepository(db *gorm.DB) *ScheduleRepository {
+	return &ScheduleRepository{db: db}
+}
+
+func (r *ScheduleRepository) Create(schedule *models.Schedule) error {
+	return r.db.Create(schedule).Error
+}
+
+func (r *ScheduleRepository) GetByID(id uint) (*models.Schedule, error) {
+	var schedule models.Schedule
+	err := r.db.Preload("Project").First(&schedule, id).Error
+	return &schedule, err
+}
+
+func (r *ScheduleRepository) GetAll() ([]models.Schedule, error) {
+	var schedules []models.Schedule
+	err := r.db.Preload("Project").Find(&schedules).Error
+	return schedules, err
+}
+
+func (r *ScheduleRepository) GetByPersonID(personID uint, personType string) ([]models.Schedule, error) {
+	var schedules []models.Schedule
+	err := r.db.Where("person_id = ? AND person_type = ?", personID, personType).
+		Preload("Project").
+		Find(&schedules).Error
+	return schedules, err
+}
+
+func (r *ScheduleRepository) GetByProjectID(projectID uint) ([]models.Schedule, error) {
+	var schedules []models.Schedule
+	err := r.db.Where("project_id = ?", projectID).Preload("Project").Find(&schedules).Error
+	return schedules, err
+}
+
+func (r *ScheduleRepository) GetByDateRange(startDate, endDate time.Time) ([]models.Schedule, error) {
+	var schedules []models.Schedule
+	err := r.db.Where("shift_date BETWEEN ? AND ?", startDate, endDate).
+		Preload("Project").
+		Order("shift_date ASC, start_time ASC").
+		Find(&schedules).Error
+	return schedules, err
+}
+
+func (r *ScheduleRepository) Update(schedule *models.Schedule) error {
+	return r.db.Save(schedule).Error
+}
+
+func (r *ScheduleRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Schedule{}, id).Error
+}

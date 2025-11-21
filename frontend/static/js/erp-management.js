@@ -1,231 +1,323 @@
-// ERP管理系统JavaScript
+// ERP Management System JavaScript
 const API_BASE_URL = '/api/v1';
 
-// 实体配置
+// Entity Configuration
 const ENTITY_CONFIG = {
     'projects': {
-        title: '项目管理',
+        title: 'Project Management',
         endpoint: 'projects',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'project_id', label: '项目编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'name', label: '项目名称', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'description', label: '描述', type: 'textarea', showInTable: false },
-            { name: 'project_type', label: '项目类型', type: 'text', showInTable: true, searchable: true },
-            { name: 'budget', label: '预算', type: 'number', showInTable: true },
-            { name: 'actual_cost', label: '实际成本', type: 'number', showInTable: true },
-            { name: 'status', label: '状态', type: 'select', options: ['planning', 'active', 'completed', 'cancelled'], showInTable: true, searchable: true },
-            { name: 'start_date', label: '开始日期', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'end_date', label: '结束日期', type: 'date', showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'project_id', label: 'Project ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'name', label: 'Project Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'description', label: 'Description', type: 'textarea', showInTable: false },
+            { name: 'project_type', label: 'Project Type', type: 'text', showInTable: true, searchable: true },
+            { name: 'budget', label: 'Budget', type: 'number', showInTable: true },
+            { name: 'actual_cost', label: 'Actual Cost', type: 'number', showInTable: true },
+            { name: 'location_id', label: 'Location ID', type: 'number', showInTable: true },
+            { name: 'status', label: 'Status', type: 'select', options: ['planning', 'active', 'completed', 'cancelled'], showInTable: true, searchable: true },
+            { name: 'start_date', label: 'Start Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
+            { name: 'end_date', label: 'End Date', type: 'date', showInTable: true }
         ]
     },
     'donors': {
-        title: '捐赠者管理',
+        title: 'Donor Management',
         endpoint: 'donors',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'donor_id', label: '捐赠者编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'first_name', label: '名', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'last_name', label: '姓', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'email', label: '邮箱', type: 'email', showInTable: true, searchable: true },
-            { name: 'phone', label: '电话', type: 'text', showInTable: true, searchable: true },
-            { name: 'donor_type', label: '类型', type: 'select', options: ['individual', 'corporate', 'foundation'], showInTable: true, searchable: true },
-            { name: 'status', label: '状态', type: 'select', options: ['active', 'inactive'], showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'donor_id', label: 'Donor ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'first_name', label: 'First Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'last_name', label: 'Last Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'email', label: 'Email', type: 'email', showInTable: true, searchable: true },
+            { name: 'phone', label: 'Phone', type: 'text', showInTable: true, searchable: true },
+            { name: 'donor_type', label: 'Type', type: 'select', options: ['individual', 'corporate', 'foundation'], showInTable: true, searchable: true },
+            { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'], showInTable: true }
         ]
     },
     'donations': {
-        title: '捐赠记录',
+        title: 'Donation Records',
         endpoint: 'donations',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'donation_id', label: '捐赠编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'donor_id', label: '捐赠者ID', type: 'number', required: true, showInTable: true },
-            { name: 'amount', label: '金额', type: 'number', required: true, showInTable: true },
-            { name: 'donation_type', label: '捐赠类型', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'category', label: '类别', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'donation_date', label: '捐赠日期', type: 'date', showInTable: true, searchable: true, dateRange: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'donation_id', label: 'Donation ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'donor_id', label: 'Donor ID', type: 'number', required: true, showInTable: true },
+            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
+            { name: 'amount', label: 'Amount', type: 'number', required: true, showInTable: true },
+            { name: 'donation_type', label: 'Donation Type', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'category', label: 'Category', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'donation_date', label: 'Donation Date', type: 'date', showInTable: true, searchable: true, dateRange: true }
         ]
     },
     'volunteers': {
-        title: '志愿者管理',
+        title: 'Volunteer Management',
         endpoint: 'volunteers',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'volunteer_id', label: '志愿者编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'first_name', label: '名', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'last_name', label: '姓', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'email', label: '邮箱', type: 'email', showInTable: true, searchable: true },
-            { name: 'phone', label: '电话', type: 'text', showInTable: true },
-            { name: 'skills', label: '技能', type: 'textarea', showInTable: false },
-            { name: 'status', label: '状态', type: 'select', options: ['active', 'inactive'], showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'volunteer_id', label: 'Volunteer ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'first_name', label: 'First Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'last_name', label: 'Last Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'email', label: 'Email', type: 'email', showInTable: true, searchable: true },
+            { name: 'phone', label: 'Phone', type: 'text', showInTable: true },
+            { name: 'location_id', label: 'Location ID', type: 'number', showInTable: true },
+            { name: 'skills', label: 'Skills', type: 'textarea', showInTable: false },
+            { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'], showInTable: true }
         ]
     },
     'employees': {
-        title: '员工管理',
+        title: 'Employee Management',
         endpoint: 'employees',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'employee_id', label: '员工编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'first_name', label: '名', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'last_name', label: '姓', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'email', label: '邮箱', type: 'email', showInTable: true, searchable: true },
-            { name: 'phone', label: '电话', type: 'text', showInTable: true },
-            { name: 'position', label: '职位', type: 'text', showInTable: true, searchable: true },
-            { name: 'department', label: '部门', type: 'text', showInTable: true, searchable: true },
-            { name: 'salary', label: '薪资', type: 'number', showInTable: true },
-            { name: 'status', label: '状态', type: 'select', options: ['active', 'inactive'], showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'employee_id', label: 'Employee ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'first_name', label: 'First Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'last_name', label: 'Last Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'email', label: 'Email', type: 'email', showInTable: true, searchable: true },
+            { name: 'phone', label: 'Phone', type: 'text', showInTable: true },
+            { name: 'position', label: 'Position', type: 'text', showInTable: true, searchable: true },
+            { name: 'department', label: 'Department', type: 'text', showInTable: true, searchable: true },
+            { name: 'salary', label: 'Salary', type: 'number', showInTable: true },
+            { name: 'location_id', label: 'Location ID', type: 'number', showInTable: true },
+            { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'], showInTable: true }
         ]
     },
     'locations': {
-        title: '地点管理',
+        title: 'Location Management',
         endpoint: 'locations',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'location_id', label: '地点编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'name', label: '名称', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'type', label: '类型', type: 'text', showInTable: true, searchable: true },
-            { name: 'address', label: '地址', type: 'textarea', showInTable: true },
-            { name: 'country_code', label: '国家代码', type: 'text', showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'location_id', label: 'Location ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'name', label: 'Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'type', label: 'Type', type: 'text', showInTable: true, searchable: true },
+            { name: 'address', label: 'Address', type: 'textarea', showInTable: true },
+            { name: 'country_code', label: 'Country Code', type: 'text', showInTable: true }
         ]
     },
     'funds': {
-        title: '基金管理',
+        title: 'Fund Management',
         endpoint: 'funds',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'fund_id', label: '基金编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'name', label: '基金名称', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'fund_type', label: '类型', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'total_amount', label: '总金额', type: 'number', required: true, showInTable: true },
-            { name: 'current_balance', label: '当前余额', type: 'number', showInTable: true },
-            { name: 'status', label: '状态', type: 'select', options: ['active', 'closed'], showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'fund_id', label: 'Fund ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'donor_id', label: 'Donor ID', type: 'number', showInTable: true },
+            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
+            { name: 'name', label: 'Fund Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'fund_type', label: 'Type', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'total_amount', label: 'Total Amount', type: 'number', required: true, showInTable: true },
+            { name: 'current_balance', label: 'Current Balance', type: 'number', showInTable: true },
+            { name: 'status', label: 'Status', type: 'select', options: ['active', 'closed'], showInTable: true }
         ]
     },
     'expenses': {
-        title: '支出管理',
+        title: 'Expense Management',
         endpoint: 'expenses',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'expense_id', label: '支出编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'fund_id', label: '基金ID', type: 'number', required: true, showInTable: true },
-            { name: 'description', label: '描述', type: 'textarea', required: true, showInTable: true },
-            { name: 'amount', label: '金额', type: 'number', required: true, showInTable: true },
-            { name: 'expense_date', label: '支出日期', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'approval_status', label: '审批状态', type: 'select', options: ['pending', 'approved', 'rejected'], showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'expense_id', label: 'Expense ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'fund_id', label: 'Fund ID', type: 'number', required: true, showInTable: true },
+            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
+            { name: 'employee_id', label: 'Employee ID', type: 'number', showInTable: true },
+            { name: 'description', label: 'Description', type: 'textarea', required: true, showInTable: true },
+            { name: 'amount', label: 'Amount', type: 'number', required: true, showInTable: true },
+            { name: 'expense_date', label: 'Expense Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
+            { name: 'approval_status', label: 'Approval Status', type: 'select', options: ['pending', 'approved', 'rejected'], showInTable: true }
         ]
     },
     'transactions': {
-        title: '交易记录',
+        title: 'Transaction Records',
         endpoint: 'transactions',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'transaction_id', label: '交易编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'type', label: '类型', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'amount', label: '金额', type: 'number', required: true, showInTable: true },
-            { name: 'from_entity', label: '来源', type: 'text', showInTable: true },
-            { name: 'to_entity', label: '目标', type: 'text', showInTable: true },
-            { name: 'transaction_date', label: '交易日期', type: 'date', showInTable: true, searchable: true, dateRange: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'transaction_id', label: 'Transaction ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'type', label: 'Type', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'amount', label: 'Amount', type: 'number', required: true, showInTable: true },
+            { name: 'from_entity', label: 'From', type: 'text', showInTable: true },
+            { name: 'to_entity', label: 'To', type: 'text', showInTable: true },
+            { name: 'transaction_date', label: 'Transaction Date', type: 'date', showInTable: true, searchable: true, dateRange: true }
         ]
     },
     'purchases': {
-        title: '采购管理',
+        title: 'Purchase Management',
         endpoint: 'purchases',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'purchase_id', label: '采购编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'total_spent', label: '总金额', type: 'number', required: true, showInTable: true },
-            { name: 'supplier_name', label: '供应商', type: 'text', showInTable: true, searchable: true },
-            { name: 'purchase_date', label: '采购日期', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'description', label: '描述', type: 'textarea', showInTable: false }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'purchase_id', label: 'Purchase ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'transaction_id', label: 'Transaction ID', type: 'number', showInTable: true },
+            { name: 'total_spent', label: 'Total Amount', type: 'number', required: true, showInTable: true },
+            { name: 'supplier_name', label: 'Supplier', type: 'text', showInTable: true, searchable: true },
+            { name: 'purchase_date', label: 'Purchase Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
+            { name: 'description', label: 'Description', type: 'textarea', showInTable: false }
         ]
     },
     'payrolls': {
-        title: '薪资管理',
+        title: 'Payroll Management',
         endpoint: 'payrolls',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'employee_id', label: '员工ID', type: 'number', required: true, showInTable: true },
-            { name: 'amount', label: '金额', type: 'number', required: true, showInTable: true },
-            { name: 'pay_date', label: '支付日期', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'deductions', label: '扣除', type: 'number', showInTable: true },
-            { name: 'bonuses', label: '奖金', type: 'number', showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'transaction_id', label: 'Transaction ID', type: 'number', required: true, showInTable: true },
+            { name: 'employee_id', label: 'Employee ID', type: 'number', required: true, showInTable: true },
+            { name: 'amount', label: 'Amount', type: 'number', required: true, showInTable: true },
+            { name: 'pay_date', label: 'Pay Date', type: 'date', required: true, showInTable: true, searchable: true, dateRange: true },
+            { name: 'deductions', label: 'Deductions', type: 'number', showInTable: true },
+            { name: 'bonuses', label: 'Bonuses', type: 'number', showInTable: true }
         ]
     },
     'inventory': {
-        title: '库存管理',
+        title: 'Inventory Management',
         endpoint: 'inventory',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'inventory_id', label: '库存编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'name', label: '名称', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'category', label: '类别', type: 'text', showInTable: true, searchable: true },
-            { name: 'current_stock', label: '当前库存', type: 'number', showInTable: true },
-            { name: 'unit_cost', label: '单价', type: 'number', showInTable: true },
-            { name: 'status', label: '状态', type: 'select', options: ['available', 'out_of_stock', 'discontinued'], showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'inventory_id', label: 'Inventory ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'name', label: 'Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'category', label: 'Category', type: 'text', showInTable: true, searchable: true },
+            { name: 'purchase_id', label: 'Purchase ID', type: 'number', showInTable: true },
+            { name: 'location_id', label: 'Location ID', type: 'number', showInTable: true },
+            { name: 'current_stock', label: 'Current Stock', type: 'number', showInTable: true },
+            { name: 'unit_cost', label: 'Unit Cost', type: 'number', showInTable: true },
+            { name: 'status', label: 'Status', type: 'select', options: ['available', 'out_of_stock', 'discontinued'], showInTable: true }
         ]
     },
     'gift-types': {
-        title: '礼品类型',
+        title: 'Gift Types',
         endpoint: 'gift-types',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'name', label: '名称', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'category', label: '类别', type: 'text', showInTable: true },
-            { name: 'unit_cost', label: '单价', type: 'number', showInTable: true },
-            { name: 'requires_inventory', label: '需要库存', type: 'checkbox', showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'name', label: 'Name', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'category', label: 'Category', type: 'text', showInTable: true },
+            { name: 'unit_cost', label: 'Unit Cost', type: 'number', showInTable: true },
+            { name: 'requires_inventory', label: 'Requires Inventory', type: 'checkbox', showInTable: true }
         ]
     },
     'gifts': {
-        title: '礼品管理',
+        title: 'Gift Management',
         endpoint: 'gifts',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'gift_id', label: '礼品编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'gift_type_id', label: '礼品类型ID', type: 'number', required: true, showInTable: true },
-            { name: 'quantity', label: '数量', type: 'number', showInTable: true },
-            { name: 'total_value', label: '总价值', type: 'number', showInTable: true },
-            { name: 'distribution_status', label: '配送状态', type: 'select', options: ['pending', 'shipped', 'delivered'], showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'gift_id', label: 'Gift ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'donor_id', label: 'Donor ID', type: 'number', showInTable: true },
+            { name: 'donation_id', label: 'Donation ID', type: 'number', showInTable: true },
+            { name: 'gift_type_id', label: 'Gift Type ID', type: 'number', required: true, showInTable: true },
+            { name: 'quantity', label: 'Quantity', type: 'number', showInTable: true },
+            { name: 'total_value', label: 'Total Value', type: 'number', showInTable: true },
+            { name: 'distribution_status', label: 'Distribution Status', type: 'select', options: ['pending', 'shipped', 'delivered'], showInTable: true }
         ]
     },
     'inventory-transactions': {
-        title: '库存交易',
+        title: 'Inventory Transactions',
         endpoint: 'inventory-transactions',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'transaction_id', label: '交易编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'inventory_id', label: '库存ID', type: 'number', required: true, showInTable: true },
-            { name: 'transaction_type', label: '交易类型', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'quantity_change', label: '数量变化', type: 'number', required: true, showInTable: true },
-            { name: 'transaction_date', label: '交易日期', type: 'date', showInTable: true, searchable: true, dateRange: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'transaction_id', label: 'Transaction ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'inventory_id', label: 'Inventory ID', type: 'number', required: true, showInTable: true },
+            { name: 'transaction_type', label: 'Transaction Type', type: 'text', required: true, showInTable: true, searchable: true },
+            { name: 'quantity_change', label: 'Quantity Change', type: 'number', required: true, showInTable: true },
+            { name: 'transaction_date', label: 'Transaction Date', type: 'date', required: true, showInTable: true, searchable: true, dateRange: true }
         ]
     },
     'deliveries': {
-        title: '配送管理',
+        title: 'Delivery Management',
         endpoint: 'deliveries',
         fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true },
-            { name: 'delivery_id', label: '配送编号', type: 'text', readonly: true, showInTable: true },
-            { name: 'inventory_id', label: '库存ID', type: 'number', required: true, showInTable: true },
-            { name: 'quantity', label: '数量', type: 'number', required: true, showInTable: true },
-            { name: 'recipient_name', label: '收件人', type: 'text', showInTable: true, searchable: true },
-            { name: 'delivery_date', label: '配送日期', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'status', label: '状态', type: 'select', options: ['pending', 'in_transit', 'delivered'], showInTable: true }
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'delivery_id', label: 'Delivery ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'inventory_id', label: 'Inventory ID', type: 'number', required: true, showInTable: true },
+            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
+            { name: 'location_id', label: 'Location ID', type: 'number', showInTable: true },
+            { name: 'quantity', label: 'Quantity', type: 'number', required: true, showInTable: true },
+            { name: 'recipient_name', label: 'Recipient', type: 'text', showInTable: true, searchable: true },
+            { name: 'delivery_date', label: 'Delivery Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
+            { name: 'status', label: 'Status', type: 'select', options: ['pending', 'in_transit', 'delivered'], showInTable: true }
+        ]
+    },
+    'volunteer-projects': {
+        title: 'Volunteer-Project Assignments',
+        endpoint: 'volunteer-projects',
+        fields: [
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'volunteer_id', label: 'Volunteer ID', type: 'number', required: true, showInTable: true },
+            { name: 'project_id', label: 'Project ID', type: 'number', required: true, showInTable: true },
+            { name: 'role', label: 'Role', type: 'text', showInTable: true, searchable: true },
+            { name: 'contract_start', label: 'Contract Start', type: 'date', showInTable: true, searchable: true, dateRange: true },
+            { name: 'contract_end', label: 'Contract End', type: 'date', showInTable: true },
+            { name: 'work_unit', label: 'Work Unit', type: 'text', showInTable: true },
+            { name: 'total_amount', label: 'Total Amount', type: 'number', showInTable: true },
+            { name: 'contract_date', label: 'Contract Date', type: 'date', showInTable: true },
+            { name: 'contract_detail', label: 'Contract Detail', type: 'textarea', showInTable: false },
+            { name: 'status', label: 'Status', type: 'select', options: ['active', 'completed', 'cancelled'], showInTable: true, searchable: true }
+        ]
+    },
+    'employee-projects': {
+        title: 'Employee-Project Assignments',
+        endpoint: 'employee-projects',
+        fields: [
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'employee_id', label: 'Employee ID', type: 'number', required: true, showInTable: true },
+            { name: 'project_id', label: 'Project ID', type: 'number', required: true, showInTable: true },
+            { name: 'title', label: 'Title', type: 'text', showInTable: true, searchable: true },
+            { name: 'start_date', label: 'Start Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
+            { name: 'end_date', label: 'End Date', type: 'date', showInTable: true },
+            { name: 'work_unit', label: 'Work Unit', type: 'text', showInTable: true },
+            { name: 'allocated_amount', label: 'Allocated Amount', type: 'number', showInTable: true },
+            { name: 'last_updated', label: 'Last Updated', type: 'datetime', readonly: true, showInTable: true, showInForm: 'edit' }
+        ]
+    },
+    'fund-projects': {
+        title: 'Fund-Project Allocations',
+        endpoint: 'fund-projects',
+        fields: [
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'transaction_id', label: 'Transaction ID', type: 'number', required: true, showInTable: true },
+            { name: 'project_id', label: 'Project ID', type: 'number', required: true, showInTable: true },
+            { name: 'fund_id', label: 'Fund ID', type: 'number', required: true, showInTable: true },
+            { name: 'allocated_amount', label: 'Allocated Amount', type: 'number', required: true, showInTable: true },
+            { name: 'allocation_date', label: 'Allocation Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
+            { name: 'purpose', label: 'Purpose', type: 'textarea', showInTable: false }
+        ]
+    },
+    'donation-inventory': {
+        title: 'Donation Inventory (In-Kind)',
+        endpoint: 'donation-inventory',
+        fields: [
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'donor_id', label: 'Donor ID', type: 'number', required: true, showInTable: true },
+            { name: 'inventory_id', label: 'Inventory ID', type: 'number', required: true, showInTable: true },
+            { name: 'donation_date', label: 'Donation Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
+            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
+            { name: 'quantity', label: 'Quantity', type: 'number', showInTable: true },
+            { name: 'estimated_value', label: 'Estimated Value', type: 'number', showInTable: true }
+        ]
+    },
+    'schedules': {
+        title: 'Schedule Management',
+        endpoint: 'schedules',
+        fields: [
+            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
+            { name: 'schedule_id', label: 'Schedule ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
+            { name: 'person_id', label: 'Person ID', type: 'number', required: true, showInTable: true },
+            { name: 'person_type', label: 'Person Type', type: 'select', options: ['volunteer', 'employee'], required: true, showInTable: true, searchable: true },
+            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
+            { name: 'shift_date', label: 'Shift Date', type: 'date', required: true, showInTable: true, searchable: true, dateRange: true },
+            { name: 'start_time', label: 'Start Time', type: 'time', required: true, showInTable: true },
+            { name: 'end_time', label: 'End Time', type: 'time', required: true, showInTable: true },
+            { name: 'hours_worked', label: 'Hours Worked', type: 'number', showInTable: true },
+            { name: 'status', label: 'Status', type: 'select', options: ['scheduled', 'completed', 'cancelled'], showInTable: true, searchable: true },
+            { name: 'notes', label: 'Notes', type: 'textarea', showInTable: false }
         ]
     }
 };
 
-// 全局状态
+// Global State
 let currentEntity = 'projects';
 let currentData = [];
 let editingItem = null;
 
-// 初始化
+// Initialization
 document.addEventListener('DOMContentLoaded', function() {
     initNavigation();
+    initSidebarToggle();
     loadEntity('projects');
 });
 
-// 导航初始化
+// Navigation Initialization
 function initNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
@@ -240,7 +332,7 @@ function initNavigation() {
         });
     });
 
-    // 按钮事件
+    // Button Events
     document.getElementById('btn-add').addEventListener('click', () => openModal());
     document.getElementById('btn-search').addEventListener('click', () => searchData());
     document.getElementById('btn-reset').addEventListener('click', () => resetSearch());
@@ -249,24 +341,92 @@ function initNavigation() {
     document.getElementById('modal-close').addEventListener('click', () => closeModal());
 }
 
-// 加载实体数据
+// Sidebar Toggle Initialization
+function initSidebarToggle() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    
+    // Load saved state from localStorage
+    const sidebarState = localStorage.getItem('sidebarState') || 'normal';
+    applySidebarState(sidebarState);
+    
+    // Initial adjustment
+    updateMainContentMargin();
+    
+    toggleBtn.addEventListener('click', function() {
+        let currentState = 'normal';
+        
+        // Toggle between normal and collapsed only
+        if (sidebar.classList.contains('collapsed')) {
+            currentState = 'normal';
+        } else {
+            currentState = 'collapsed';
+        }
+        
+        applySidebarState(currentState);
+        localStorage.setItem('sidebarState', currentState);
+    });
+    
+    // Update main content margin when sidebar width changes
+    const resizeObserver = new ResizeObserver(entries => {
+        updateMainContentMargin();
+    });
+    
+    resizeObserver.observe(sidebar);
+    
+    // Also update on window resize
+    window.addEventListener('resize', () => {
+        updateMainContentMargin();
+    });
+}
+
+// Update main content margin based on sidebar width
+function updateMainContentMargin() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const sidebarWidth = sidebar.offsetWidth;
+    mainContent.style.marginLeft = `${sidebarWidth}px`;
+}
+
+// Apply Sidebar State
+function applySidebarState(state) {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    
+    // Remove all state classes
+    sidebar.classList.remove('collapsed');
+    mainContent.classList.remove('sidebar-collapsed');
+    
+    if (state === 'collapsed') {
+        sidebar.classList.add('collapsed');
+        mainContent.classList.add('sidebar-collapsed');
+    }
+    
+    // Wait for CSS transition to complete, then update margin
+    setTimeout(() => {
+        updateMainContentMargin();
+    }, 50);
+}
+
+// Load Entity Data
 async function loadEntity(entity) {
     currentEntity = entity;
     const config = ENTITY_CONFIG[entity];
     
     document.getElementById('page-title').textContent = config.title;
     
-    // 生成搜索控件
+    // Generate Search Controls
     generateSearchControls(config);
     
-    // 生成表格
+    // Generate Table
     generateTable(config);
     
-    // 加载数据
+    // Fetch Data
     await fetchData();
 }
 
-// 生成搜索控件
+// Generate Search Controls
 function generateSearchControls(config) {
     const searchControls = document.getElementById('search-controls');
     searchControls.innerHTML = '';
@@ -282,7 +442,7 @@ function generateSearchControls(config) {
         if (field.type === 'select') {
             const select = document.createElement('select');
             select.id = `search-${field.name}`;
-            select.innerHTML = '<option value="">全部</option>';
+            select.innerHTML = '<option value="">All</option>';
             field.options.forEach(opt => {
                 select.innerHTML += `<option value="${opt}">${opt}</option>`;
             });
@@ -291,19 +451,19 @@ function generateSearchControls(config) {
             const startInput = document.createElement('input');
             startInput.type = 'date';
             startInput.id = `search-${field.name}-start`;
-            startInput.placeholder = '开始日期';
+            startInput.placeholder = 'Start Date';
             formGroup.appendChild(startInput);
             
             const endInput = document.createElement('input');
             endInput.type = 'date';
             endInput.id = `search-${field.name}-end`;
-            endInput.placeholder = '结束日期';
+            endInput.placeholder = 'End Date';
             formGroup.appendChild(endInput);
         } else {
             const input = document.createElement('input');
             input.type = 'text';
             input.id = `search-${field.name}`;
-            input.placeholder = `搜索${field.label}`;
+            input.placeholder = `Search ${field.label}`;
             formGroup.appendChild(input);
         }
         
@@ -311,7 +471,7 @@ function generateSearchControls(config) {
     });
 }
 
-// 生成表格
+// Generate Table
 function generateTable(config) {
     const tableHead = document.getElementById('table-head');
     const headerRow = document.createElement('tr');
@@ -323,14 +483,14 @@ function generateTable(config) {
     });
     
     const actionTh = document.createElement('th');
-    actionTh.textContent = '操作';
+    actionTh.textContent = 'Actions';
     headerRow.appendChild(actionTh);
     
     tableHead.innerHTML = '';
     tableHead.appendChild(headerRow);
 }
 
-// 获取数据
+// Fetch Data
 async function fetchData() {
     try {
         const config = ENTITY_CONFIG[currentEntity];
@@ -340,13 +500,13 @@ async function fetchData() {
         currentData = result.data || [];
         renderTable();
         
-        document.getElementById('data-count').textContent = `总计: ${currentData.length} 条`;
+        document.getElementById('data-count').textContent = `Total: ${currentData.length} records`;
     } catch (error) {
-        showToast('加载数据失败: ' + error.message, 'error');
+        showToast('Failed to load data: ' + error.message, 'error');
     }
 }
 
-// 渲染表格
+// Render Table
 function renderTable() {
     const config = ENTITY_CONFIG[currentEntity];
     const tableBody = document.getElementById('table-body');
@@ -364,8 +524,8 @@ function renderTable() {
         const actionTd = document.createElement('td');
         actionTd.innerHTML = `
             <div class="action-buttons">
-                <button class="btn btn-small btn-secondary" onclick="editItem(${item.id})">编辑</button>
-                <button class="btn btn-small btn-danger" onclick="deleteItem(${item.id})">删除</button>
+                <button class="btn btn-small btn-secondary" onclick="editItem(${item.id})">Edit</button>
+                <button class="btn btn-small btn-danger" onclick="deleteItem(${item.id})">Delete</button>
             </div>
         `;
         row.appendChild(actionTd);
@@ -374,31 +534,33 @@ function renderTable() {
     });
 }
 
-// 搜索数据
+// Search Data
 function searchData() {
-    // 简单的前端过滤，实际应该后端实现
+    // Simple front-end filtering, should be implemented on the back-end
     fetchData();
 }
 
-// 重置搜索
+// Reset Search
 function resetSearch() {
     const searchInputs = document.querySelectorAll('#search-controls input, #search-controls select');
     searchInputs.forEach(input => input.value = '');
     fetchData();
 }
 
-// 打开模态框
+// Open Modal
 function openModal(item = null) {
     editingItem = item;
     const config = ENTITY_CONFIG[currentEntity];
     const modal = document.getElementById('edit-modal');
     const form = document.getElementById('edit-form');
     
-    document.getElementById('modal-title').textContent = item ? '编辑' + config.title : '新增' + config.title;
+    document.getElementById('modal-title').textContent = item ? 'Edit ' + config.title : 'Add ' + config.title;
     
     form.innerHTML = '';
     config.fields.forEach(field => {
-        if (field.readonly && !item) return;
+        // Check if field should be shown in form
+        if (field.showInForm === false) return;
+        if (field.showInForm === 'edit' && !item) return;
         
         const formGroup = document.createElement('div');
         formGroup.className = 'form-group';
@@ -412,7 +574,7 @@ function openModal(item = null) {
             input = document.createElement('textarea');
         } else if (field.type === 'select') {
             input = document.createElement('select');
-            input.innerHTML = '<option value="">请选择</option>';
+            input.innerHTML = '<option value="">Please select</option>';
             field.options.forEach(opt => {
                 input.innerHTML += `<option value="${opt}">${opt}</option>`;
             });
@@ -444,13 +606,13 @@ function openModal(item = null) {
     modal.classList.add('show');
 }
 
-// 关闭模态框
+// Close Modal
 function closeModal() {
     document.getElementById('edit-modal').classList.remove('show');
     editingItem = null;
 }
 
-// 保存数据
+// Save Data
 async function saveData() {
     const config = ENTITY_CONFIG[currentEntity];
     const form = document.getElementById('edit-form');
@@ -458,12 +620,19 @@ async function saveData() {
     
     const data = {};
     config.fields.forEach(field => {
+        // Skip fields that are not in form
+        if (field.showInForm === false) return;
+        if (field.showInForm === 'edit' && !editingItem) return;
+        
         const input = document.getElementById(`edit-${field.name}`);
         if (input) {
             if (field.type === 'checkbox') {
                 data[field.name] = input.checked;
             } else if (field.type === 'number') {
                 data[field.name] = input.value ? parseFloat(input.value) : null;
+            } else if (field.type === 'date' && input.value) {
+                // Convert date string to ISO 8601 format with local timezone offset
+                data[field.name] = formatDateWithTimezone(input.value);
             } else {
                 data[field.name] = input.value || null;
             }
@@ -488,18 +657,46 @@ async function saveData() {
         const result = await response.json();
         
         if (response.ok) {
-            showToast(result.message || '保存成功', 'success');
+            showToast(result.message || 'Saved successfully', 'success');
             closeModal();
             fetchData();
         } else {
-            showToast(result.error || '保存失败', 'error');
+            showToast(result.error || 'Save failed', 'error');
         }
     } catch (error) {
-        showToast('保存失败: ' + error.message, 'error');
+        showToast('Save failed: ' + error.message, 'error');
     }
 }
 
-// 编辑项
+// Format date with timezone offset
+function formatDateWithTimezone(dateString) {
+    // Create date object from input (YYYY-MM-DD)
+    const date = new Date(dateString + 'T00:00:00');
+    
+    // Get timezone offset in minutes
+    const timezoneOffset = -date.getTimezoneOffset();
+    
+    // Convert offset to hours and minutes
+    const offsetHours = Math.floor(Math.abs(timezoneOffset) / 60);
+    const offsetMinutes = Math.abs(timezoneOffset) % 60;
+    
+    // Format offset as +HH:MM or -HH:MM
+    const offsetSign = timezoneOffset >= 0 ? '+' : '-';
+    const offsetString = `${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMinutes).padStart(2, '0')}`;
+    
+    // Format date components
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    // Return ISO 8601 format with timezone offset
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetString}`;
+}
+
+// Edit Item
 function editItem(id) {
     const item = currentData.find(i => i.id === id);
     if (item) {
@@ -507,9 +704,9 @@ function editItem(id) {
     }
 }
 
-// 删除项
+// Delete Item
 async function deleteItem(id) {
-    if (!confirm('确定要删除这条记录吗？')) return;
+    if (!confirm('Are you sure you want to delete this record?')) return;
     
     try {
         const config = ENTITY_CONFIG[currentEntity];
@@ -520,17 +717,17 @@ async function deleteItem(id) {
         const result = await response.json();
         
         if (response.ok) {
-            showToast(result.message || '删除成功', 'success');
+            showToast(result.message || 'Deleted successfully', 'success');
             fetchData();
         } else {
-            showToast(result.error || '删除失败', 'error');
+            showToast(result.error || 'Delete failed', 'error');
         }
     } catch (error) {
-        showToast('删除失败: ' + error.message, 'error');
+        showToast('Delete failed: ' + error.message, 'error');
     }
 }
 
-// 显示提示
+// Show Toast
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toast-message');

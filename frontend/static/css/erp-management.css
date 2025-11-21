@@ -30,33 +30,117 @@ body {
 
 /* 侧边栏 */
 .sidebar {
-    width: 260px;
+    width: auto;
+    min-width: 60px;
+    max-width: 600px;
     background: white;
     border-right: 1px solid var(--border-color);
+    overflow-x: hidden;
     overflow-y: auto;
     position: fixed;
     left: 0;
     top: 0;
     bottom: 0;
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.sidebar.collapsed {
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+}
+
+.sidebar.collapsed .sidebar-header {
+    padding: 24px 10px;
+    justify-content: center;
 }
 
 .logo {
-    padding: 24px 20px;
-    border-bottom: 1px solid var(--border-color);
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.sidebar.collapsed .logo {
+    display: none;
 }
 
 .logo h2 {
     font-size: 20px;
     font-weight: 600;
     color: var(--primary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 侧边栏切换按钮 */
+.sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 18px;
+    font-weight: bold;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.sidebar-toggle:hover {
+    background: var(--bg-color);
+    color: var(--primary-color);
+}
+
+.sidebar.collapsed .sidebar-toggle .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.toggle-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
 }
 
 .nav-menu {
     padding: 20px 0;
+    transition: opacity 0.3s ease;
+    display: block !important;  /* 强制单列布局，覆盖header.css的flex布局 */
+    flex-direction: column !important;
+}
+
+.sidebar.collapsed .nav-menu {
+    display: none !important;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .nav-section {
     margin-bottom: 24px;
+    padding: 0;
+    display: block;  /* 确保分组也是块级元素 */
+}
+
+.nav-section:last-child {
+    margin-bottom: 0;
 }
 
 .nav-section h3 {
@@ -64,35 +148,41 @@ body {
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
-    padding: 0 20px;
+    padding: 8px 20px;
     margin-bottom: 8px;
+    background: var(--bg-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;  /* 确保标题是块级元素 */
 }
 
 .nav-item {
-    display: block;
-    padding: 10px 20px;
+    display: block !important;  /* 强制每个菜单项占一行 */
+    padding: 12px 20px;
     color: var(--text-color);
     text-decoration: none;
     transition: all 0.2s;
     font-size: 14px;
-}
-
-.nav-item:hover {
-    background: var(--bg-color);
-    color: var(--primary-color);
-}
-
-.nav-item.active {
-    background: #eff6ff;
-    color: var(--primary-color);
-    border-right: 3px solid var(--primary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    width: 100%;  /* 确保宽度100% */
 }
 
 /* 主内容区 */
 .main-content {
     flex: 1;
-    margin-left: 260px;
+    margin-left: 280px;
     padding: 24px;
+    padding-bottom: 80px;  /* 为footer留出空间 */
+    transition: margin-left 0.3s ease;
+    min-width: 0;
+}
+
+.main-content.sidebar-collapsed {
+    margin-left: 60px;
 }
 
 /* 工具栏 */
@@ -365,6 +455,31 @@ body {
     background: var(--danger-color);
 }
 
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 60px;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--border-color);
+    padding: 16px 24px;
+    text-align: center;
+    z-index: 50;
+    transition: left 0.3s ease;
+}
+
+.main-content.sidebar-collapsed + .footer {
+    left: 60px;
+}
+
+.footer p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
 /* 响应式 */
 @media (max-width: 768px) {
     .sidebar {
@@ -373,6 +488,10 @@ body {
 
     .main-content {
         margin-left: 0;
+    }
+
+    .footer {
+        left: 0;
     }
 
     .search-controls {

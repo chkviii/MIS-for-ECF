@@ -27,6 +27,11 @@ type ERPHandler struct {
 	giftService                 *services.GiftService
 	inventoryTransactionService *services.InventoryTransactionService
 	deliveryService             *services.DeliveryService
+	volunteerProjectService     *services.VolunteerProjectService
+	employeeProjectService      *services.EmployeeProjectService
+	fundProjectService          *services.FundProjectService
+	donationInventoryService    *services.DonationInventoryService
+	scheduleService             *services.ScheduleService
 }
 
 func NewERPHandler(
@@ -46,6 +51,11 @@ func NewERPHandler(
 	giftService *services.GiftService,
 	inventoryTransactionService *services.InventoryTransactionService,
 	deliveryService *services.DeliveryService,
+	volunteerProjectService *services.VolunteerProjectService,
+	employeeProjectService *services.EmployeeProjectService,
+	fundProjectService *services.FundProjectService,
+	donationInventoryService *services.DonationInventoryService,
+	scheduleService *services.ScheduleService,
 ) *ERPHandler {
 	return &ERPHandler{
 		projectService:              projectService,
@@ -64,6 +74,11 @@ func NewERPHandler(
 		giftService:                 giftService,
 		inventoryTransactionService: inventoryTransactionService,
 		deliveryService:             deliveryService,
+		volunteerProjectService:     volunteerProjectService,
+		employeeProjectService:      employeeProjectService,
+		fundProjectService:          fundProjectService,
+		donationInventoryService:    donationInventoryService,
+		scheduleService:             scheduleService,
 	}
 }
 
@@ -1170,4 +1185,319 @@ func (h *ERPHandler) DeleteDelivery(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "配送记录删除成功"})
+}
+
+// ==================== 志愿者-项目关联管理 ====================
+func (h *ERPHandler) CreateVolunteerProject(c *gin.Context) {
+	var vp models.VolunteerProject
+	if err := c.ShouldBindJSON(&vp); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.volunteerProjectService.Create(&vp); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"data": vp, "message": "志愿者项目分配创建成功"})
+}
+
+func (h *ERPHandler) GetAllVolunteerProjects(c *gin.Context) {
+	vps, err := h.volunteerProjectService.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": vps, "count": len(vps)})
+}
+
+func (h *ERPHandler) UpdateVolunteerProject(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		return
+	}
+
+	var vp models.VolunteerProject
+	if err := c.ShouldBindJSON(&vp); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	vp.ID = uint(id)
+	if err := h.volunteerProjectService.Update(&vp); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": vp, "message": "志愿者项目分配更新成功"})
+}
+
+func (h *ERPHandler) DeleteVolunteerProject(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		return
+	}
+
+	if err := h.volunteerProjectService.Delete(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "志愿者项目分配删除成功"})
+}
+
+// ==================== 员工-项目关联管理 ====================
+func (h *ERPHandler) CreateEmployeeProject(c *gin.Context) {
+	var ep models.EmployeeProject
+	if err := c.ShouldBindJSON(&ep); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.employeeProjectService.Create(&ep); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"data": ep, "message": "员工项目分配创建成功"})
+}
+
+func (h *ERPHandler) GetAllEmployeeProjects(c *gin.Context) {
+	eps, err := h.employeeProjectService.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": eps, "count": len(eps)})
+}
+
+func (h *ERPHandler) UpdateEmployeeProject(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		return
+	}
+
+	var ep models.EmployeeProject
+	if err := c.ShouldBindJSON(&ep); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ep.ID = uint(id)
+	if err := h.employeeProjectService.Update(&ep); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": ep, "message": "员工项目分配更新成功"})
+}
+
+func (h *ERPHandler) DeleteEmployeeProject(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		return
+	}
+
+	if err := h.employeeProjectService.Delete(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "员工项目分配删除成功"})
+}
+
+// ==================== 基金-项目关联管理 ====================
+func (h *ERPHandler) CreateFundProject(c *gin.Context) {
+	var fp models.FundProject
+	if err := c.ShouldBindJSON(&fp); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.fundProjectService.Create(&fp); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"data": fp, "message": "基金项目分配创建成功"})
+}
+
+func (h *ERPHandler) GetAllFundProjects(c *gin.Context) {
+	fps, err := h.fundProjectService.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": fps, "count": len(fps)})
+}
+
+func (h *ERPHandler) UpdateFundProject(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		return
+	}
+
+	var fp models.FundProject
+	if err := c.ShouldBindJSON(&fp); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fp.ID = uint(id)
+	if err := h.fundProjectService.Update(&fp); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": fp, "message": "基金项目分配更新成功"})
+}
+
+func (h *ERPHandler) DeleteFundProject(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		return
+	}
+
+	if err := h.fundProjectService.Delete(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "基金项目分配删除成功"})
+}
+
+// ==================== 捐赠-库存关联管理 ====================
+func (h *ERPHandler) CreateDonationInventory(c *gin.Context) {
+	var di models.DonationInventory
+	if err := c.ShouldBindJSON(&di); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.donationInventoryService.Create(&di); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"data": di, "message": "实物捐赠记录创建成功"})
+}
+
+func (h *ERPHandler) GetAllDonationInventories(c *gin.Context) {
+	dis, err := h.donationInventoryService.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": dis, "count": len(dis)})
+}
+
+func (h *ERPHandler) UpdateDonationInventory(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		return
+	}
+
+	var di models.DonationInventory
+	if err := c.ShouldBindJSON(&di); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	di.ID = uint(id)
+	if err := h.donationInventoryService.Update(&di); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": di, "message": "实物捐赠记录更新成功"})
+}
+
+func (h *ERPHandler) DeleteDonationInventory(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		return
+	}
+
+	if err := h.donationInventoryService.Delete(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "实物捐赠记录删除成功"})
+}
+
+// ==================== 调度管理 ====================
+func (h *ERPHandler) CreateSchedule(c *gin.Context) {
+	var schedule models.Schedule
+	if err := c.ShouldBindJSON(&schedule); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.scheduleService.Create(&schedule); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"data": schedule, "message": "调度记录创建成功"})
+}
+
+func (h *ERPHandler) GetAllSchedules(c *gin.Context) {
+	schedules, err := h.scheduleService.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": schedules, "count": len(schedules)})
+}
+
+func (h *ERPHandler) UpdateSchedule(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的调度ID"})
+		return
+	}
+
+	var schedule models.Schedule
+	if err := c.ShouldBindJSON(&schedule); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	schedule.ID = uint(id)
+	if err := h.scheduleService.Update(&schedule); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": schedule, "message": "调度记录更新成功"})
+}
+
+func (h *ERPHandler) DeleteSchedule(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的调度ID"})
+		return
+	}
+
+	if err := h.scheduleService.Delete(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "调度记录删除成功"})
 }

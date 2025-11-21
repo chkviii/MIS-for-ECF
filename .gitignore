@@ -1,4 +1,5 @@
 /backend/bin/
+/backend/data/
 /.env
 /compile.bat
 /*.conf
