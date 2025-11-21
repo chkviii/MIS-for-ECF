@@ -24,10 +24,10 @@ func Load() *Config {
 	// Set default values
 	viper.SetDefault("PORT", ":33031")
 
-	// Set default paths relative to the working directory
-	viper.SetDefault("STATIC_PATH", filepath.Join("..", "frontend", "static"))
-	viper.SetDefault("HTML_PATH", filepath.Join("..", "frontend", "templates"))
-	viper.SetDefault("DB_PATH", filepath.Join("..", "data", "grom.db"))
+	// Set default paths relative to the bin directory (go up 2 levels to project root)
+	viper.SetDefault("STATIC_PATH", filepath.Join("..", "..", "frontend", "static"))
+	viper.SetDefault("HTML_PATH", filepath.Join("..", "..", "frontend", "templates"))
+	viper.SetDefault("DB_PATH", filepath.Join("..", "data", "erp.db"))
 	viper.SetDefault("ENCRYPT_SEED", "This is a random seed: ahdgcv-ajweory943gb;caP.'CK[QW]")
 	//viper.SetDefault("JWT_SECRET", "your-secret-key")
 
@@ -41,7 +41,7 @@ func Load() *Config {
 	}
 
 	GlobalConfig = &Config{}
-	if err := viper.Unmarshal(*GlobalConfig); err != nil {
+	if err := viper.Unmarshal(GlobalConfig); err != nil {
 		fmt.Println("Go: Unable to decode config:", err)
 	}
 

@@ -1,0 +1,882 @@
+package repo
+
+import (
+	"mypage-backend/internal/models"
+	"gorm.io/gorm"
+	"time"
+)
+
+type ProjectRepository struct {
+	db *gorm.DB
+}
+
+func NewProjectRepository(db *gorm.DB) *ProjectRepository {
+	return &ProjectRepository{db: db}
+}
+
+// Create 创建项目
+func (r *ProjectRepository) Create(project *models.Project) error {
+	return r.db.Create(project).Error
+}
+
+// GetByID 根据ID获取项目
+func (r *ProjectRepository) GetByID(id uint) (*models.Project, error) {
+	var project models.Project
+	err := r.db.Preload("Location").Preload("ProjectManager").First(&project, id).Error
+	return &project, err
+}
+
+// GetByProjectID 根据项目ID获取项目
+func (r *ProjectRepository) GetByProjectID(projectID string) (*models.Project, error) {
+	var project models.Project
+	err := r.db.Where("project_id = ?", projectID).Preload("Location").First(&project).Error
+	return &project, err
+}
+
+// GetAll 获取所有项目
+func (r *ProjectRepository) GetAll() ([]models.Project, error) {
+	var projects []models.Project
+	err := r.db.Preload("Location").Preload("ProjectManager").Find(&projects).Error
+	return projects, err
+}
+
+// GetByStatus 根据状态获取项目
+func (r *ProjectRepository) GetByStatus(status string) ([]models.Project, error) {
+	var projects []models.Project
+	err := r.db.Where("status = ?", status).Preload("Location").Find(&projects).Error
+	return projects, err
+}
+
+// Update 更新项目
+func (r *ProjectRepository) Update(project *models.Project) error {
+	return r.db.Save(project).Error
+}
+
+// Delete 删除项目
+func (r *ProjectRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Project{}, id).Error
+}
+
+// GetWithVolunteers 获取项目及其志愿者
+func (r *ProjectRepository) GetWithVolunteers(id uint) (*models.Project, error) {
+	var project models.Project
+	err := r.db.Preload("Volunteers").First(&project, id).Error
+	return &project, err
+}
+
+// GetWithEmployees 获取项目及其员工
+func (r *ProjectRepository) GetWithEmployees(id uint) (*models.Project, error) {
+	var project models.Project
+	err := r.db.Preload("Employees").First(&project, id).Error
+	return &project, err
+}
+
+// AssignVolunteer 分配志愿者到项目
+func (r *ProjectRepository) AssignVolunteer(vp *models.VolunteerProject) error {
+	return r.db.Create(vp).Error
+}
+
+// AssignEmployee 分配员工到项目
+func (r *ProjectRepository) AssignEmployee(ep *models.EmployeeProject) error {
+	return r.db.Create(ep).Error
+}
+
+func (r *ProjectRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Project, error) {
+	tx := r.db.Preload("Location").Preload("ProjectManager")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("start_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("start_date <= ?", endDate)
+	}
+	
+	var projects []models.Project
+	err := tx.Find(&projects).Error
+	return projects, err
+}
+
+// DonorRepository 捐赠者仓储
+type DonorRepository struct {
+	db *gorm.DB
+}
+
+func NewDonorRepository(db *gorm.DB) *DonorRepository {
+	return &DonorRepository{db: db}
+}
+
+func (r *DonorRepository) Create(donor *models.Donor) error {
+	return r.db.Create(donor).Error
+}
+
+func (r *DonorRepository) GetByID(id uint) (*models.Donor, error) {
+	var donor models.Donor
+	err := r.db.First(&donor, id).Error
+	return &donor, err
+}
+
+func (r *DonorRepository) GetByDonorID(donorID string) (*models.Donor, error) {
+	var donor models.Donor
+	err := r.db.Where("donor_id = ?", donorID).First(&donor).Error
+	return &donor, err
+}
+
+func (r *DonorRepository) GetAll() ([]models.Donor, error) {
+	var donors []models.Donor
+	err := r.db.Find(&donors).Error
+	return donors, err
+}
+
+func (r *DonorRepository) Update(donor *models.Donor) error {
+	return r.db.Save(donor).Error
+}
+
+func (r *DonorRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Donor{}, id).Error
+}
+
+func (r *DonorRepository) GetWithDonations(id uint) (*models.Donor, error) {
+	var donor models.Donor
+	err := r.db.Preload("Donations").First(&donor, id).Error
+	return &donor, err
+}
+
+func (r *DonorRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Donor, error) {
+	tx := r.db.Model(&models.Donor{})
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("enrollment_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("enrollment_date <= ?", endDate)
+	}
+	
+	var donors []models.Donor
+	err := tx.Find(&donors).Error
+	return donors, err
+}
+
+// DonationRepository 捐赠仓储
+type DonationRepository struct {
+	db *gorm.DB
+}
+
+func NewDonationRepository(db *gorm.DB) *DonationRepository {
+	return &DonationRepository{db: db}
+}
+
+func (r *DonationRepository) Create(donation *models.Donation) error {
+	return r.db.Create(donation).Error
+}
+
+func (r *DonationRepository) GetByID(id uint) (*models.Donation, error) {
+	var donation models.Donation
+	err := r.db.Preload("Donor").Preload("Project").First(&donation, id).Error
+	return &donation, err
+}
+
+func (r *DonationRepository) GetAll() ([]models.Donation, error) {
+	var donations []models.Donation
+	err := r.db.Preload("Donor").Find(&donations).Error
+	return donations, err
+}
+
+func (r *DonationRepository) GetByDonorID(donorID uint) ([]models.Donation, error) {
+	var donations []models.Donation
+	err := r.db.Where("donor_id = ?", donorID).Preload("Donor").Find(&donations).Error
+	return donations, err
+}
+
+func (r *DonationRepository) Update(donation *models.Donation) error {
+	return r.db.Save(donation).Error
+}
+
+func (r *DonationRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Donation, error) {
+	tx := r.db.Preload("Donor").Preload("Project")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("donation_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("donation_date <= ?", endDate)
+	}
+	
+	var donations []models.Donation
+	err := tx.Find(&donations).Error
+	return donations, err
+}
+
+func (r *DonationRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Donation{}, id).Error
+}
+
+// VolunteerRepository 志愿者仓储
+type VolunteerRepository struct {
+	db *gorm.DB
+}
+
+func NewVolunteerRepository(db *gorm.DB) *VolunteerRepository {
+	return &VolunteerRepository{db: db}
+}
+
+func (r *VolunteerRepository) Create(volunteer *models.Volunteer) error {
+	return r.db.Create(volunteer).Error
+}
+
+func (r *VolunteerRepository) GetByID(id uint) (*models.Volunteer, error) {
+	var volunteer models.Volunteer
+	err := r.db.Preload("Location").First(&volunteer, id).Error
+	return &volunteer, err
+}
+
+func (r *VolunteerRepository) GetAll() ([]models.Volunteer, error) {
+	var volunteers []models.Volunteer
+	err := r.db.Preload("Location").Find(&volunteers).Error
+	return volunteers, err
+}
+
+func (r *VolunteerRepository) Update(volunteer *models.Volunteer) error {
+	return r.db.Save(volunteer).Error
+}
+
+func (r *VolunteerRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Volunteer{}, id).Error
+}
+
+func (r *VolunteerRepository) Search(query map[string]interface{}) ([]models.Volunteer, error) {
+	tx := r.db.Preload("Location")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	var volunteers []models.Volunteer
+	err := tx.Find(&volunteers).Error
+	return volunteers, err
+}
+
+// EmployeeRepository 员工仓储
+type EmployeeRepository struct {
+	db *gorm.DB
+}
+
+func NewEmployeeRepository(db *gorm.DB) *EmployeeRepository {
+	return &EmployeeRepository{db: db}
+}
+
+func (r *EmployeeRepository) Create(employee *models.Employee) error {
+	return r.db.Create(employee).Error
+}
+
+func (r *EmployeeRepository) GetByID(id uint) (*models.Employee, error) {
+	var employee models.Employee
+	err := r.db.Preload("Location").Preload("Supervisor").First(&employee, id).Error
+	return &employee, err
+}
+
+func (r *EmployeeRepository) GetAll() ([]models.Employee, error) {
+	var employees []models.Employee
+	err := r.db.Preload("Location").Find(&employees).Error
+	return employees, err
+}
+
+func (r *EmployeeRepository) Update(employee *models.Employee) error {
+	return r.db.Save(employee).Error
+}
+
+func (r *EmployeeRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Employee{}, id).Error
+}
+
+func (r *EmployeeRepository) Search(query map[string]interface{}) ([]models.Employee, error) {
+	tx := r.db.Preload("Location").Preload("Supervisor")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	var employees []models.Employee
+	err := tx.Find(&employees).Error
+	return employees, err
+}
+
+// LocationRepository 地点仓储
+type LocationRepository struct {
+	db *gorm.DB
+}
+
+func NewLocationRepository(db *gorm.DB) *LocationRepository {
+	return &LocationRepository{db: db}
+}
+
+func (r *LocationRepository) Create(location *models.Location) error {
+	return r.db.Create(location).Error
+}
+
+func (r *LocationRepository) GetByID(id uint) (*models.Location, error) {
+	var location models.Location
+	err := r.db.Preload("ParentLocation").First(&location, id).Error
+	return &location, err
+}
+
+func (r *LocationRepository) GetAll() ([]models.Location, error) {
+	var locations []models.Location
+	err := r.db.Find(&locations).Error
+	return locations, err
+}
+
+func (r *LocationRepository) Update(location *models.Location) error {
+	return r.db.Save(location).Error
+}
+
+func (r *LocationRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Location{}, id).Error
+}
+
+func (r *LocationRepository) Search(query map[string]interface{}) ([]models.Location, error) {
+	tx := r.db.Preload("ParentLocation")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	var locations []models.Location
+	err := tx.Find(&locations).Error
+	return locations, err
+}
+
+// FundRepository 基金仓储
+type FundRepository struct {
+	db *gorm.DB
+}
+
+func NewFundRepository(db *gorm.DB) *FundRepository {
+	return &FundRepository{db: db}
+}
+
+func (r *FundRepository) Create(fund *models.Fund) error {
+	return r.db.Create(fund).Error
+}
+
+func (r *FundRepository) GetByID(id uint) (*models.Fund, error) {
+	var fund models.Fund
+	err := r.db.Preload("Donor").Preload("Project").Preload("FundManager").First(&fund, id).Error
+	return &fund, err
+}
+
+func (r *FundRepository) GetAll() ([]models.Fund, error) {
+	var funds []models.Fund
+	err := r.db.Preload("Donor").Preload("Project").Find(&funds).Error
+	return funds, err
+}
+
+func (r *FundRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Fund, error) {
+	tx := r.db.Preload("Donor").Preload("Project")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("established_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("established_date <= ?", endDate)
+	}
+	
+	var funds []models.Fund
+	err := tx.Find(&funds).Error
+	return funds, err
+}
+
+func (r *FundRepository) Update(fund *models.Fund) error {
+	return r.db.Save(fund).Error
+}
+
+func (r *FundRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Fund{}, id).Error
+}
+
+// ExpenseRepository 支出仓储
+type ExpenseRepository struct {
+	db *gorm.DB
+}
+
+func NewExpenseRepository(db *gorm.DB) *ExpenseRepository {
+	return &ExpenseRepository{db: db}
+}
+
+func (r *ExpenseRepository) Create(expense *models.Expense) error {
+	return r.db.Create(expense).Error
+}
+
+func (r *ExpenseRepository) GetByID(id uint) (*models.Expense, error) {
+	var expense models.Expense
+	err := r.db.Preload("Fund").Preload("Project").Preload("Employee").First(&expense, id).Error
+	return &expense, err
+}
+
+func (r *ExpenseRepository) GetAll() ([]models.Expense, error) {
+	var expenses []models.Expense
+	err := r.db.Preload("Fund").Preload("Project").Preload("Employee").Find(&expenses).Error
+	return expenses, err
+}
+
+func (r *ExpenseRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Expense, error) {
+	tx := r.db.Preload("Fund").Preload("Project").Preload("Employee")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("expense_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("expense_date <= ?", endDate)
+	}
+	
+	var expenses []models.Expense
+	err := tx.Find(&expenses).Error
+	return expenses, err
+}
+
+func (r *ExpenseRepository) Update(expense *models.Expense) error {
+	return r.db.Save(expense).Error
+}
+
+func (r *ExpenseRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Expense{}, id).Error
+}
+
+// TransactionRepository 交易仓储
+type TransactionRepository struct {
+	db *gorm.DB
+}
+
+func NewTransactionRepository(db *gorm.DB) *TransactionRepository {
+	return &TransactionRepository{db: db}
+}
+
+func (r *TransactionRepository) Create(transaction *models.Transaction) error {
+	return r.db.Create(transaction).Error
+}
+
+func (r *TransactionRepository) GetByID(id uint) (*models.Transaction, error) {
+	var transaction models.Transaction
+	err := r.db.First(&transaction, id).Error
+	return &transaction, err
+}
+
+func (r *TransactionRepository) GetAll() ([]models.Transaction, error) {
+	var transactions []models.Transaction
+	err := r.db.Find(&transactions).Error
+	return transactions, err
+}
+
+func (r *TransactionRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Transaction, error) {
+	tx := r.db.Model(&models.Transaction{})
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("transaction_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("transaction_date <= ?", endDate)
+	}
+	
+	var transactions []models.Transaction
+	err := tx.Find(&transactions).Error
+	return transactions, err
+}
+
+func (r *TransactionRepository) Update(transaction *models.Transaction) error {
+	return r.db.Save(transaction).Error
+}
+
+func (r *TransactionRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Transaction{}, id).Error
+}
+
+// PurchaseRepository 采购仓储
+type PurchaseRepository struct {
+	db *gorm.DB
+}
+
+func NewPurchaseRepository(db *gorm.DB) *PurchaseRepository {
+	return &PurchaseRepository{db: db}
+}
+
+func (r *PurchaseRepository) Create(purchase *models.Purchase) error {
+	return r.db.Create(purchase).Error
+}
+
+func (r *PurchaseRepository) GetByID(id uint) (*models.Purchase, error) {
+	var purchase models.Purchase
+	err := r.db.Preload("Transaction").First(&purchase, id).Error
+	return &purchase, err
+}
+
+func (r *PurchaseRepository) GetAll() ([]models.Purchase, error) {
+	var purchases []models.Purchase
+	err := r.db.Preload("Transaction").Find(&purchases).Error
+	return purchases, err
+}
+
+func (r *PurchaseRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Purchase, error) {
+	tx := r.db.Preload("Transaction")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("purchase_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("purchase_date <= ?", endDate)
+	}
+	
+	var purchases []models.Purchase
+	err := tx.Find(&purchases).Error
+	return purchases, err
+}
+
+func (r *PurchaseRepository) Update(purchase *models.Purchase) error {
+	return r.db.Save(purchase).Error
+}
+
+func (r *PurchaseRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Purchase{}, id).Error
+}
+
+// PayrollRepository 薪资仓储
+type PayrollRepository struct {
+	db *gorm.DB
+}
+
+func NewPayrollRepository(db *gorm.DB) *PayrollRepository {
+	return &PayrollRepository{db: db}
+}
+
+func (r *PayrollRepository) Create(payroll *models.Payroll) error {
+	return r.db.Create(payroll).Error
+}
+
+func (r *PayrollRepository) GetByID(id uint) (*models.Payroll, error) {
+	var payroll models.Payroll
+	err := r.db.Preload("Employee").Preload("Transaction").First(&payroll, id).Error
+	return &payroll, err
+}
+
+func (r *PayrollRepository) GetAll() ([]models.Payroll, error) {
+	var payrolls []models.Payroll
+	err := r.db.Preload("Employee").Preload("Transaction").Find(&payrolls).Error
+	return payrolls, err
+}
+
+func (r *PayrollRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Payroll, error) {
+	tx := r.db.Preload("Employee").Preload("Transaction")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("pay_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("pay_date <= ?", endDate)
+	}
+	
+	var payrolls []models.Payroll
+	err := tx.Find(&payrolls).Error
+	return payrolls, err
+}
+
+func (r *PayrollRepository) Update(payroll *models.Payroll) error {
+	return r.db.Save(payroll).Error
+}
+
+func (r *PayrollRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Payroll{}, id).Error
+}
+
+// InventoryRepository 库存仓储
+type InventoryRepository struct {
+	db *gorm.DB
+}
+
+func NewInventoryRepository(db *gorm.DB) *InventoryRepository {
+	return &InventoryRepository{db: db}
+}
+
+func (r *InventoryRepository) Create(inventory *models.Inventory) error {
+	return r.db.Create(inventory).Error
+}
+
+func (r *InventoryRepository) GetByID(id uint) (*models.Inventory, error) {
+	var inventory models.Inventory
+	err := r.db.Preload("Purchase").Preload("Location").First(&inventory, id).Error
+	return &inventory, err
+}
+
+func (r *InventoryRepository) GetAll() ([]models.Inventory, error) {
+	var inventories []models.Inventory
+	err := r.db.Preload("Purchase").Preload("Location").Find(&inventories).Error
+	return inventories, err
+}
+
+func (r *InventoryRepository) Search(query map[string]interface{}) ([]models.Inventory, error) {
+	tx := r.db.Preload("Purchase").Preload("Location")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	var inventories []models.Inventory
+	err := tx.Find(&inventories).Error
+	return inventories, err
+}
+
+func (r *InventoryRepository) Update(inventory *models.Inventory) error {
+	return r.db.Save(inventory).Error
+}
+
+func (r *InventoryRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Inventory{}, id).Error
+}
+
+// GiftTypeRepository 礼品类型仓储
+type GiftTypeRepository struct {
+	db *gorm.DB
+}
+
+func NewGiftTypeRepository(db *gorm.DB) *GiftTypeRepository {
+	return &GiftTypeRepository{db: db}
+}
+
+func (r *GiftTypeRepository) Create(giftType *models.GiftType) error {
+	return r.db.Create(giftType).Error
+}
+
+func (r *GiftTypeRepository) GetByID(id uint) (*models.GiftType, error) {
+	var giftType models.GiftType
+	err := r.db.First(&giftType, id).Error
+	return &giftType, err
+}
+
+func (r *GiftTypeRepository) GetAll() ([]models.GiftType, error) {
+	var giftTypes []models.GiftType
+	err := r.db.Find(&giftTypes).Error
+	return giftTypes, err
+}
+
+func (r *GiftTypeRepository) Update(giftType *models.GiftType) error {
+	return r.db.Save(giftType).Error
+}
+
+func (r *GiftTypeRepository) Delete(id uint) error {
+	return r.db.Delete(&models.GiftType{}, id).Error
+}
+
+// GiftRepository 礼品仓储
+type GiftRepository struct {
+	db *gorm.DB
+}
+
+func NewGiftRepository(db *gorm.DB) *GiftRepository {
+	return &GiftRepository{db: db}
+}
+
+func (r *GiftRepository) Create(gift *models.Gift) error {
+	return r.db.Create(gift).Error
+}
+
+func (r *GiftRepository) GetByID(id uint) (*models.Gift, error) {
+	var gift models.Gift
+	err := r.db.Preload("Donor").Preload("Donation").Preload("GiftType").First(&gift, id).Error
+	return &gift, err
+}
+
+func (r *GiftRepository) GetAll() ([]models.Gift, error) {
+	var gifts []models.Gift
+	err := r.db.Preload("Donor").Preload("Donation").Preload("GiftType").Find(&gifts).Error
+	return gifts, err
+}
+
+func (r *GiftRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Gift, error) {
+	tx := r.db.Preload("Donor").Preload("Donation").Preload("GiftType")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("distributed_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("distributed_date <= ?", endDate)
+	}
+	
+	var gifts []models.Gift
+	err := tx.Find(&gifts).Error
+	return gifts, err
+}
+
+func (r *GiftRepository) Update(gift *models.Gift) error {
+	return r.db.Save(gift).Error
+}
+
+func (r *GiftRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Gift{}, id).Error
+}
+
+// InventoryTransactionRepository 库存交易仓储
+type InventoryTransactionRepository struct {
+	db *gorm.DB
+}
+
+func NewInventoryTransactionRepository(db *gorm.DB) *InventoryTransactionRepository {
+	return &InventoryTransactionRepository{db: db}
+}
+
+func (r *InventoryTransactionRepository) Create(transaction *models.InventoryTransaction) error {
+	return r.db.Create(transaction).Error
+}
+
+func (r *InventoryTransactionRepository) GetByID(id uint) (*models.InventoryTransaction, error) {
+	var transaction models.InventoryTransaction
+	err := r.db.Preload("Inventory").First(&transaction, id).Error
+	return &transaction, err
+}
+
+func (r *InventoryTransactionRepository) GetAll() ([]models.InventoryTransaction, error) {
+	var transactions []models.InventoryTransaction
+	err := r.db.Preload("Inventory").Find(&transactions).Error
+	return transactions, err
+}
+
+func (r *InventoryTransactionRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.InventoryTransaction, error) {
+	tx := r.db.Preload("Inventory")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("transaction_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("transaction_date <= ?", endDate)
+	}
+	
+	var transactions []models.InventoryTransaction
+	err := tx.Find(&transactions).Error
+	return transactions, err
+}
+
+func (r *InventoryTransactionRepository) Update(transaction *models.InventoryTransaction) error {
+	return r.db.Save(transaction).Error
+}
+
+func (r *InventoryTransactionRepository) Delete(id uint) error {
+	return r.db.Delete(&models.InventoryTransaction{}, id).Error
+}
+
+// DeliveryRepository 配送仓储
+type DeliveryRepository struct {
+	db *gorm.DB
+}
+
+func NewDeliveryRepository(db *gorm.DB) *DeliveryRepository {
+	return &DeliveryRepository{db: db}
+}
+
+func (r *DeliveryRepository) Create(delivery *models.Delivery) error {
+	return r.db.Create(delivery).Error
+}
+
+func (r *DeliveryRepository) GetByID(id uint) (*models.Delivery, error) {
+	var delivery models.Delivery
+	err := r.db.Preload("Inventory").Preload("Project").Preload("Location").First(&delivery, id).Error
+	return &delivery, err
+}
+
+func (r *DeliveryRepository) GetAll() ([]models.Delivery, error) {
+	var deliveries []models.Delivery
+	err := r.db.Preload("Inventory").Preload("Project").Preload("Location").Find(&deliveries).Error
+	return deliveries, err
+}
+
+func (r *DeliveryRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Delivery, error) {
+	tx := r.db.Preload("Inventory").Preload("Project").Preload("Location")
+	
+	for key, value := range query {
+		if value != "" && value != nil {
+			tx = tx.Where(key+" LIKE ?", "%"+value.(string)+"%")
+		}
+	}
+	
+	if startDate != nil {
+		tx = tx.Where("delivery_date >= ?", startDate)
+	}
+	if endDate != nil {
+		tx = tx.Where("delivery_date <= ?", endDate)
+	}
+	
+	var deliveries []models.Delivery
+	err := tx.Find(&deliveries).Error
+	return deliveries, err
+}
+
+func (r *DeliveryRepository) Update(delivery *models.Delivery) error {
+	return r.db.Save(delivery).Error
+}
+
+func (r *DeliveryRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Delivery{}, id).Error
+}

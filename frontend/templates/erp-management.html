@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP 管理系统</title>
+    <link rel="stylesheet" href="/static/css/base/reset.css">
+    <link rel="stylesheet" href="/static/css/base/typography.css">
+    <link rel="stylesheet" href="/static/css/components/buttons.css">
+    <link rel="stylesheet" href="/static/css/components/forms.css">
+    <link rel="stylesheet" href="/static/css/components/modals.css">
+    <link rel="stylesheet" href="/static/css/layout/header.css">
+    <link rel="stylesheet" href="/static/css/erp-management.css">
+</head>
+<body>
+    <div class="erp-container">
+        <!-- 侧边栏导航 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>ERP 系统</h2>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <h3>核心管理</h3>
+                    <a href="#" class="nav-item" data-entity="projects">项目管理</a>
+                    <a href="#" class="nav-item" data-entity="donors">捐赠者管理</a>
+                    <a href="#" class="nav-item" data-entity="donations">捐赠记录</a>
+                    <a href="#" class="nav-item" data-entity="volunteers">志愿者管理</a>
+                    <a href="#" class="nav-item" data-entity="employees">员工管理</a>
+                    <a href="#" class="nav-item" data-entity="locations">地点管理</a>
+                </div>
+                <div class="nav-section">
+                    <h3>财务管理</h3>
+                    <a href="#" class="nav-item" data-entity="funds">基金管理</a>
+                    <a href="#" class="nav-item" data-entity="expenses">支出管理</a>
+                    <a href="#" class="nav-item" data-entity="transactions">交易记录</a>
+                    <a href="#" class="nav-item" data-entity="purchases">采购管理</a>
+                    <a href="#" class="nav-item" data-entity="payrolls">薪资管理</a>
+                </div>
+                <div class="nav-section">
+                    <h3>库存管理</h3>
+                    <a href="#" class="nav-item" data-entity="inventory">库存管理</a>
+                    <a href="#" class="nav-item" data-entity="gift-types">礼品类型</a>
+                    <a href="#" class="nav-item" data-entity="gifts">礼品管理</a>
+                    <a href="#" class="nav-item" data-entity="inventory-transactions">库存交易</a>
+                    <a href="#" class="nav-item" data-entity="deliveries">配送管理</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 顶部工具栏 -->
+            <div class="toolbar">
+                <h1 id="page-title">项目管理</h1>
+                <button class="btn btn-primary" id="btn-add">
+                    <span>+ 新增</span>
+                </button>
+            </div>
+
+            <!-- 搜索过滤区 -->
+            <div class="filter-section">
+                <div class="search-controls" id="search-controls">
+                    <!-- 动态生成的搜索框 -->
+                </div>
+                <button class="btn btn-secondary" id="btn-search">搜索</button>
+                <button class="btn btn-secondary" id="btn-reset">重置</button>
+            </div>
+
+            <!-- 数据表格 -->
+            <div class="table-container">
+                <table class="data-table" id="data-table">
+                    <thead id="table-head">
+                        <!-- 动态生成的表头 -->
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- 动态生成的数据行 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页 -->
+            <div class="pagination">
+                <span id="data-count">总计: 0 条</span>
+            </div>
+        </main>
+    </div>
+
+    <!-- 编辑/新增模态框 -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">编辑</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-form">
+                    <!-- 动态生成的表单字段 -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-cancel">取消</button>
+                <button class="btn btn-primary" id="btn-save">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <script src="/static/js/erp-management.js"></script>
+</body>
+</html>

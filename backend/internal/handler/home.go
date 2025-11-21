@@ -1,14 +1,14 @@
 package handler
 
 import (
-	"net/http"
-	
 	"mypage-backend/internal/util"
+	
+	"github.com/gin-gonic/gin"
 )
 
-func HomeHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func HomeHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		// Serve the index.html file
-		http.ServeFile(w, r, util.Html_Path("index.html"))
-	})
+		c.File(util.Html_Path("index.html"))
+	}
 }

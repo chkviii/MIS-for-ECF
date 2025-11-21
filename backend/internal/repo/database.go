@@ -2,115 +2,90 @@ package repo
 
 import (
 	"fmt"
-	"mypage-backend/internal/config"
-	"os"
-	"path/filepath"
+	"log"
 	"sync"
 
-	"github.com/glebarez/sqlite"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+
+	"mypage-backend/internal/models"
 )
 
-// data model definitions
-type User struct {
-	ID         uint   `json:"uid" gorm:"primarykey"`
-	Username   string `json:"username" gorm:"unique;not null"`
-	Email      string `json:"email" gorm:"unique"`
-	Password   string `json:"-" gorm:"not null"`
-	Role       string `json:"role" gorm:"default:user"`
-	Registered int64  `json:"registered" gorm:"autoCreateTime"`
-	Status     string `json:"status" gorm:"default:processing"` // e.g., active, inactive, processing, banned, etc.
-}
-
-type ArticleMeta struct {
-	ID        uint     `json:"id" gorm:"primarykey"`
-	Title     string   `json:"title" gorm:"not null"`
-	AuthorID  uint     `json:"uid" gorm:"not null"`
-	CreatedAt int64    `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt int64    `json:"updated_at" gorm:"autoUpdateTime"`
-	FilePath  string   `json:"file_path" gorm:"not null;unique"`
-	Tags      []string `json:"tags" gorm:"type:text"` // Tags stored as JSON
-}
-
-type ArticleStatistics struct {
-	ID        uint  `json:"id" gorm:"primarykey"`
-	Liked     uint  `json:"liked" gorm:"default:0"`
-	Disliked  uint  `json:"disliked" gorm:"default:0"`
-	Views     uint  `json:"views" gorm:"default:0"`
-	Comments  uint  `json:"comments" gorm:"default:0"`
-	UpdatedAt int64 `json:"updated_at" gorm:"autoUpdateTime"`
-}
-
-type Comment struct {
-	ID        uint   `json:"id" gorm:"primarykey"`
-	UserID    uint   `json:"user_id" gorm:"not null"`
-	ArticleID string `json:"article_id" gorm:"not null"`
-	ParentID  uint   `json:"parent_id"` // ID of the parent comment, if any
-	Content   string `json:"content" gorm:"not null"`
-	CreatedAt int64  `json:"created_at" gorm:"autoCreateTime"`
-}
-
-var dbInstance *gorm.DB
+var DB *gorm.DB
 var dbOnce sync.Once
 var initErr error
 
-// Initializes the database connection
-func InitDB(cfg *config.Config) error {
-
-	dbPath := cfg.DB_Path
-
-	dbDir := filepath.Dir(dbPath)
-	if err := os.MkdirAll(dbDir, 0755); err != nil {
-		return fmt.Errorf("failed to create database directory: %w", err)
+// InitDatabase 初始化数据库连接
+func InitDatabase(dbPath string) error {
+	var err error
+	
+	// 配置GORM日志
+	config := &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
 	}
-
-	if _, err := os.Stat(dbDir); err != nil {
-		return fmt.Errorf("database directory not accessible: %w", err)
-	}
-
-	fmt.Printf("Attempting to open database at: %s\n", dbPath)
-	fmt.Printf("Database directory: %s\n", dbDir)
-
-	// Add grom config here
-	config := &gorm.Config{}
-
-	// 打开数据库连接
-	dbInstance, err := gorm.Open(sqlite.Open(dbPath), config)
+	
+	// 连接SQLite数据库
+	DB, err = gorm.Open(sqlite.Open(dbPath), config)
 	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
+		return fmt.Errorf("failed to connect database: %w", err)
 	}
-
-	// 自动迁移数据库结构
-	if err := autoMigrate(dbInstance); err != nil {
+	
+	log.Println("Database connected successfully")
+	
+	// 自动迁移所有模型
+	err = AutoMigrate()
+	if err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
-
+	
+	log.Println("Database migration completed")
 	return nil
 }
 
-func GetDB() (*gorm.DB, error) {
-	dbOnce.Do(func() {
-		initErr = InitDB(config.GlobalConfig)
-	})
-	if initErr != nil {
-		return nil, initErr
-	}
-	return dbInstance, nil
-}
-
-// 自动迁移数据库表结构
-func autoMigrate(db *gorm.DB) error {
-	return db.AutoMigrate(
-		&User{},
-		&ArticleMeta{},
-		&ArticleStatistics{},
-		&Comment{},
+// AutoMigrate 自动迁移所有数据表
+func AutoMigrate() error {
+	return DB.AutoMigrate(
+		// 核心实体
+		&models.User{},
+		&models.Donor{},
+		&models.Volunteer{},
+		&models.Employee{},
+		&models.Location{},
+		&models.Project{},
+		
+		// 财务相关
+		&models.Transaction{},
+		&models.Donation{},
+		&models.Fund{},
+		&models.Expense{},
+		&models.Purchase{},
+		&models.Payroll{},
+		
+		// 库存和礼品
+		&models.Inventory{},
+		&models.GiftType{},
+		&models.Gift{},
+		&models.InventoryTransaction{},
+		&models.Delivery{},
+		
+		// 关联表
+		&models.VolunteerProject{},
+		&models.EmployeeProject{},
+		&models.FundProject{},
+		&models.DonationInventory{},
+		&models.Schedule{},
 	)
 }
 
-// Close Database connection
-func CloseDB(db *gorm.DB) error {
-	sqlDB, err := db.DB()
+// GetDB 获取数据库实例
+func GetDB() *gorm.DB {
+	return DB
+}
+
+// CloseDatabase 关闭数据库连接
+func CloseDatabase() error {
+	sqlDB, err := DB.DB()
 	if err != nil {
 		return err
 	}
