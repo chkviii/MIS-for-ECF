@@ -5,7 +5,8 @@ import (
 	"crypto/cipher"
 	"crypto/ed25519"
 	"crypto/rand"
-	"crypto/sha256"
+	"crypto/sha512"
+	"errors"
 
 	"mypage-backend/internal/config"
 
@@ -25,12 +26,17 @@ func KeyInit() {
 	//Load key string in config
 	seed := []byte(config.GlobalConfig.Ecrypt_Seed)
 	//hash the seed to 32 bytes
-	seedHash := sha256.Sum256(seed)
+	seedHash := SHA512(seed)
+
+	//clamp the private key acording to RFC 7748
+	seedHash[0] &= 248
+	seedHash[31] &= 127
+	seedHash[31] |= 64
 
 	// Generate a new Ed25519 key pair from the hashed seed
-	privkey := ed25519.NewKeyFromSeed(seedHash[:])
+	privkey := ed25519.NewKeyFromSeed(seedHash[:32])
 	var encPrivKey, encPubKey [32]byte
-	copy(encPrivKey[:], seedHash[:])
+	copy(encPrivKey[:], seedHash[:32])
 	curve25519.ScalarBaseMult(&encPubKey, &encPrivKey)
 
 	keys = Ecrypt{
@@ -57,9 +63,9 @@ func SrvEncPrivKey() []byte {
 	return keys.EncPrivKey
 }
 
-// sha256 hash
-func Sha256(data []byte) []byte {
-	hash := sha256.Sum256(data)
+// sha512 hash
+func SHA512(data []byte) []byte {
+	hash := sha512.Sum512(data)
 	return hash[:]
 }
 
@@ -75,6 +81,19 @@ func ECDHEncrypt(pubKey, message []byte) ([]byte, error) {
 	sharedKey, err = curve25519.X25519(privKeyArr, pubKeyArr)
 	if err != nil {
 		return nil, err
+	}
+
+	//check if sharedKey is all zero
+	isAllZero := true
+	for _, b := range sharedKey {
+		if b != 0 {
+			isAllZero = false
+			break
+		}
+	}
+
+	if isAllZero {
+		return nil, errors.New("failed to derive shared key: invalid public key")
 	}
 
 	ciphertext, err := AESEncrypt(sharedKey, message)
