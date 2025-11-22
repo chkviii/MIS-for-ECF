@@ -100,6 +100,7 @@ const ENTITY_CONFIG = {
             { name: 'fund_id', label: 'Fund ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
             { name: 'donor_id', label: 'Donor ID', type: 'number', showInTable: true },
             { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
+            { name: 'transaction_id', label: 'Transaction ID', type: 'number', showInTable: true },
             { name: 'name', label: 'Fund Name', type: 'text', required: true, showInTable: true, searchable: true },
             { name: 'fund_type', label: 'Type', type: 'text', required: true, showInTable: true, searchable: true },
             { name: 'total_amount', label: 'Total Amount', type: 'number', required: true, showInTable: true },
@@ -116,6 +117,7 @@ const ENTITY_CONFIG = {
             { name: 'fund_id', label: 'Fund ID', type: 'number', required: true, showInTable: true },
             { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
             { name: 'employee_id', label: 'Employee ID', type: 'number', showInTable: true },
+            { name: 'transaction_id', label: 'Transaction ID', type: 'number', showInTable: true },
             { name: 'description', label: 'Description', type: 'textarea', required: true, showInTable: true },
             { name: 'amount', label: 'Amount', type: 'number', required: true, showInTable: true },
             { name: 'expense_date', label: 'Expense Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
@@ -193,8 +195,8 @@ const ENTITY_CONFIG = {
         fields: [
             { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
             { name: 'gift_id', label: 'Gift ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'donor_id', label: 'Donor ID', type: 'number', showInTable: true },
             { name: 'donation_id', label: 'Donation ID', type: 'number', showInTable: true },
+            { name: 'delivery_id', label: 'Delivery ID', type: 'number', showInTable: true },
             { name: 'gift_type_id', label: 'Gift Type ID', type: 'number', required: true, showInTable: true },
             { name: 'quantity', label: 'Quantity', type: 'number', showInTable: true },
             { name: 'total_value', label: 'Total Value', type: 'number', showInTable: true },
@@ -535,9 +537,52 @@ function renderTable() {
 }
 
 // Search Data
-function searchData() {
-    // Simple front-end filtering, should be implemented on the back-end
-    fetchData();
+async function searchData() {
+    try {
+        const config = ENTITY_CONFIG[currentEntity];
+        
+        // Build query parameters from search inputs
+        const queryParams = new URLSearchParams();
+        
+        config.fields.filter(f => f.searchable).forEach(field => {
+            if (field.dateRange) {
+                // Handle date range fields
+                const startInput = document.getElementById(`search-${field.name}-start`);
+                const endInput = document.getElementById(`search-${field.name}-end`);
+                
+                if (startInput && startInput.value) {
+                    queryParams.append('start_date', startInput.value);
+                }
+                if (endInput && endInput.value) {
+                    queryParams.append('end_date', endInput.value);
+                }
+            } else {
+                // Handle regular fields
+                const input = document.getElementById(`search-${field.name}`);
+                if (input && input.value) {
+                    queryParams.append(field.name, input.value);
+                }
+            }
+        });
+        
+        // If no search params, just fetch all data
+        if (queryParams.toString() === '') {
+            await fetchData();
+            return;
+        }
+        
+        // Call search endpoint with query params
+        const response = await fetch(`${API_BASE_URL}/${config.endpoint}/search?${queryParams.toString()}`);
+        const result = await response.json();
+        
+        currentData = result.data || [];
+        renderTable();
+        
+        document.getElementById('data-count').textContent = `Total: ${currentData.length} records`;
+        showToast(`Found ${currentData.length} records`, 'success');
+    } catch (error) {
+        showToast('Search failed: ' + error.message, 'error');
+    }
 }
 
 // Reset Search

@@ -21,63 +21,63 @@ func NewProjectService(projectRepo *repo.ProjectRepository, locationRepo *repo.L
 	}
 }
 
-// CreateProject 创建项目
+// CreateProject creates a new project
 func (s *ProjectService) CreateProject(project *models.Project) error {
 	if project.Name == "" {
-		return errors.New("项目名称不能为空")
+		return errors.New("project name cannot be empty")
 	}
 
 	if project.Budget < 0 {
-		return errors.New("项目预算不能为负数")
+		return errors.New("project budget cannot be negative")
 	}
 
-	// 验证地点
+	// Validate location
 	if project.LocationID != nil {
 		_, err := s.locationRepo.GetByID(*project.LocationID)
-		if err != nil {
-			return errors.New("无效的地点ID")
+		if (err != nil) {
+			return errors.New("invalid location ID")
 		}
 	}
 
-	// 生成项目ID
+	// Generate project ID
 	project.ProjectID = fmt.Sprintf("PRJ-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	project.Status = "planning"
 
 	return s.projectRepo.Create(project)
 }
 
-// GetProject 获取项目
+// GetProject retrieves a project
 func (s *ProjectService) GetProject(id uint) (*models.Project, error) {
 	return s.projectRepo.GetByID(id)
 }
 
-// GetAllProjects 获取所有项目
+// GetAllProjects retrieves all projects
 func (s *ProjectService) GetAllProjects() ([]models.Project, error) {
 	return s.projectRepo.GetAll()
 }
 
-// GetProjectsByStatus 按状态获取项目
+// GetProjectsByStatus retrieves projects by status
 func (s *ProjectService) GetProjectsByStatus(status string) ([]models.Project, error) {
 	return s.projectRepo.GetByStatus(status)
 }
 
-// UpdateProject 更新项目
+// UpdateProject updates a project
 func (s *ProjectService) UpdateProject(project *models.Project) error {
-	// 验证项目存在
+	// Validate project exists
 	_, err := s.projectRepo.GetByID(project.ID)
 	if err != nil {
-		return errors.New("项目不存在")
+		return errors.New("project not found")
 	}
 
 	return s.projectRepo.Update(project)
 }
 
-// DeleteProject 删除项目
+// DeleteProject deletes a project
 func (s *ProjectService) DeleteProject(id uint) error {
 	return s.projectRepo.Delete(id)
 }
 
-// AssignVolunteer 分配志愿者到项目
+// AssignVolunteer assigns a volunteer to a project
 func (s *ProjectService) AssignVolunteer(volunteerID, projectID uint, assignment *models.VolunteerProject) error {
 	assignment.VolunteerID = volunteerID
 	assignment.ProjectID = projectID
@@ -85,14 +85,14 @@ func (s *ProjectService) AssignVolunteer(volunteerID, projectID uint, assignment
 	return s.projectRepo.AssignVolunteer(assignment)
 }
 
-// AssignEmployee 分配员工到项目
+// AssignEmployee assigns an employee to a project
 func (s *ProjectService) AssignEmployee(employeeID, projectID uint, assignment *models.EmployeeProject) error {
 	assignment.EmployeeID = employeeID
 	assignment.ProjectID = projectID
 	return s.projectRepo.AssignEmployee(assignment)
 }
 
-// DonorService 捐赠者服务
+// DonorService Donor service
 type DonorService struct {
 	donorRepo *repo.DonorRepository
 }
@@ -103,10 +103,10 @@ func NewDonorService(donorRepo *repo.DonorRepository) *DonorService {
 
 func (s *DonorService) CreateDonor(donor *models.Donor) error {
 	if donor.FirstName == "" || donor.LastName == "" {
-		return errors.New("捐赠者姓名不能为空")
+		return errors.New("donor name cannot be empty")
 	}
 
-	// 生成捐赠者ID
+	// Generate donor ID
 	donor.DonorID = fmt.Sprintf("DNR-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	donor.Status = "active"
 
@@ -137,7 +137,7 @@ func (s *DonorService) SearchDonors(query map[string]interface{}, startDate, end
 	return s.donorRepo.Search(query, startDate, endDate)
 }
 
-// DonationService 捐赠服务
+// DonationService Donation service
 type DonationService struct {
 	donationRepo *repo.DonationRepository
 	donorRepo    *repo.DonorRepository
@@ -152,19 +152,19 @@ func NewDonationService(donationRepo *repo.DonationRepository, donorRepo *repo.D
 
 func (s *DonationService) CreateDonation(donation *models.Donation) error {
 	if donation.Amount <= 0 {
-		return errors.New("捐赠金额必须大于0")
+		return errors.New("donation amount must be greater than 0")
 	}
 
-	// 验证捐赠者存在
+	// Validate donor exists
 	_, err := s.donorRepo.GetByID(donation.DonorID)
 	if err != nil {
-		return errors.New("捐赠者不存在")
+		return errors.New("donor not found")
 	}
 
-	// 生成捐赠ID
+	// Generate donation ID
 	donation.DonationID = fmt.Sprintf("DON-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	
-	// 如果没有提供捐赠日期，使用当前时间
+	// If no donation date provided, use current time
 	if donation.DonationDate.IsZero() {
 		donation.DonationDate = time.Now()
 	}
@@ -196,7 +196,7 @@ func (s *DonationService) DeleteDonation(id uint) error {
 	return s.donationRepo.Delete(id)
 }
 
-// VolunteerService 志愿者服务
+// VolunteerService Volunteer service
 type VolunteerService struct {
 	volunteerRepo *repo.VolunteerRepository
 }
@@ -207,10 +207,10 @@ func NewVolunteerService(volunteerRepo *repo.VolunteerRepository) *VolunteerServ
 
 func (s *VolunteerService) CreateVolunteer(volunteer *models.Volunteer) error {
 	if volunteer.FirstName == "" || volunteer.LastName == "" {
-		return errors.New("志愿者姓名不能为空")
+		return errors.New("volunteer name cannot be empty")
 	}
 
-	// 生成志愿者ID
+	// Generate volunteer ID
 	volunteer.VolunteerID = fmt.Sprintf("VOL-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	volunteer.Status = "active"
 
@@ -237,7 +237,7 @@ func (s *VolunteerService) SearchVolunteers(query map[string]interface{}) ([]mod
 	return s.volunteerRepo.Search(query)
 }
 
-// EmployeeService 员工服务
+// EmployeeService Employee service
 type EmployeeService struct {
 	employeeRepo *repo.EmployeeRepository
 }
@@ -248,10 +248,10 @@ func NewEmployeeService(employeeRepo *repo.EmployeeRepository) *EmployeeService 
 
 func (s *EmployeeService) CreateEmployee(employee *models.Employee) error {
 	if employee.FirstName == "" || employee.LastName == "" {
-		return errors.New("员工姓名不能为空")
+		return errors.New("employee name cannot be empty")
 	}
 
-	// 生成员工ID
+	// Generate employee ID
 	employee.EmployeeID = fmt.Sprintf("EMP-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	employee.Status = "active"
 
@@ -278,7 +278,7 @@ func (s *EmployeeService) SearchEmployees(query map[string]interface{}) ([]model
 	return s.employeeRepo.Search(query)
 }
 
-// LocationService 地点服务
+// LocationService Location service
 type LocationService struct {
 	locationRepo *repo.LocationRepository
 }
@@ -289,10 +289,10 @@ func NewLocationService(locationRepo *repo.LocationRepository) *LocationService 
 
 func (s *LocationService) CreateLocation(location *models.Location) error {
 	if location.Name == "" {
-		return errors.New("地点名称不能为空")
+		return errors.New("location name cannot be empty")
 	}
 
-	// 生成地点ID
+	// Generate location ID
 	location.LocationID = fmt.Sprintf("LOC-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 
 	return s.locationRepo.Create(location)
@@ -322,7 +322,7 @@ func (s *ProjectService) SearchProjects(query map[string]interface{}, startDate,
 	return s.projectRepo.Search(query, startDate, endDate)
 }
 
-// FundService 基金服务
+// FundService Fund service
 type FundService struct {
 	fundRepo *repo.FundRepository
 }
@@ -333,7 +333,7 @@ func NewFundService(fundRepo *repo.FundRepository) *FundService {
 
 func (s *FundService) CreateFund(fund *models.Fund) error {
 	if fund.Name == "" {
-		return errors.New("基金名称不能为空")
+		return errors.New("fund name cannot be empty")
 	}
 	fund.FundID = fmt.Sprintf("FND-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	fund.Status = "active"
@@ -360,7 +360,7 @@ func (s *FundService) DeleteFund(id uint) error {
 	return s.fundRepo.Delete(id)
 }
 
-// ExpenseService 支出服务
+// ExpenseService Expense service
 type ExpenseService struct {
 	expenseRepo *repo.ExpenseRepository
 }
@@ -371,7 +371,7 @@ func NewExpenseService(expenseRepo *repo.ExpenseRepository) *ExpenseService {
 
 func (s *ExpenseService) CreateExpense(expense *models.Expense) error {
 	if expense.Amount <= 0 {
-		return errors.New("支出金额必须大于0")
+		return errors.New("expense amount must be greater than 0")
 	}
 	expense.ExpenseID = fmt.Sprintf("EXP-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	expense.ApprovalStatus = "pending"
@@ -398,7 +398,7 @@ func (s *ExpenseService) DeleteExpense(id uint) error {
 	return s.expenseRepo.Delete(id)
 }
 
-// TransactionService 交易服务
+// TransactionService Transaction service
 type TransactionService struct {
 	transactionRepo *repo.TransactionRepository
 }
@@ -409,7 +409,7 @@ func NewTransactionService(transactionRepo *repo.TransactionRepository) *Transac
 
 func (s *TransactionService) CreateTransaction(transaction *models.Transaction) error {
 	if transaction.Amount <= 0 {
-		return errors.New("交易金额必须大于0")
+		return errors.New("transaction amount must be greater than 0")
 	}
 	transaction.TransactionID = fmt.Sprintf("TXN-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	return s.transactionRepo.Create(transaction)
@@ -435,7 +435,7 @@ func (s *TransactionService) DeleteTransaction(id uint) error {
 	return s.transactionRepo.Delete(id)
 }
 
-// PurchaseService 采购服务
+// PurchaseService Purchase service
 type PurchaseService struct {
 	purchaseRepo *repo.PurchaseRepository
 }
@@ -446,7 +446,7 @@ func NewPurchaseService(purchaseRepo *repo.PurchaseRepository) *PurchaseService 
 
 func (s *PurchaseService) CreatePurchase(purchase *models.Purchase) error {
 	if purchase.TotalSpent <= 0 {
-		return errors.New("采购金额必须大于0")
+		return errors.New("purchase amount must be greater than 0")
 	}
 	purchase.PurchaseID = fmt.Sprintf("PUR-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	return s.purchaseRepo.Create(purchase)
@@ -472,7 +472,7 @@ func (s *PurchaseService) DeletePurchase(id uint) error {
 	return s.purchaseRepo.Delete(id)
 }
 
-// PayrollService 薪资服务
+// PayrollService Payroll service
 type PayrollService struct {
 	payrollRepo *repo.PayrollRepository
 }
@@ -483,7 +483,7 @@ func NewPayrollService(payrollRepo *repo.PayrollRepository) *PayrollService {
 
 func (s *PayrollService) CreatePayroll(payroll *models.Payroll) error {
 	if payroll.Amount <= 0 {
-		return errors.New("薪资金额必须大于0")
+		return errors.New("payroll amount must be greater than 0")
 	}
 	return s.payrollRepo.Create(payroll)
 }
@@ -508,7 +508,7 @@ func (s *PayrollService) DeletePayroll(id uint) error {
 	return s.payrollRepo.Delete(id)
 }
 
-// InventoryService 库存服务
+// InventoryService Inventory service
 type InventoryService struct {
 	inventoryRepo *repo.InventoryRepository
 }
@@ -519,7 +519,7 @@ func NewInventoryService(inventoryRepo *repo.InventoryRepository) *InventoryServ
 
 func (s *InventoryService) CreateInventory(inventory *models.Inventory) error {
 	if inventory.Name == "" {
-		return errors.New("库存名称不能为空")
+		return errors.New("inventory name cannot be empty")
 	}
 	inventory.InventoryID = fmt.Sprintf("INV-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	inventory.Status = "available"
@@ -546,7 +546,7 @@ func (s *InventoryService) DeleteInventory(id uint) error {
 	return s.inventoryRepo.Delete(id)
 }
 
-// GiftTypeService 礼品类型服务
+// GiftTypeService Gift type service
 type GiftTypeService struct {
 	giftTypeRepo *repo.GiftTypeRepository
 }
@@ -557,7 +557,7 @@ func NewGiftTypeService(giftTypeRepo *repo.GiftTypeRepository) *GiftTypeService 
 
 func (s *GiftTypeService) CreateGiftType(giftType *models.GiftType) error {
 	if giftType.Name == "" {
-		return errors.New("礼品类型名称不能为空")
+		return errors.New("gift type name cannot be empty")
 	}
 	return s.giftTypeRepo.Create(giftType)
 }
@@ -578,7 +578,7 @@ func (s *GiftTypeService) DeleteGiftType(id uint) error {
 	return s.giftTypeRepo.Delete(id)
 }
 
-// GiftService 礼品服务
+// GiftService Gift service
 type GiftService struct {
 	giftRepo *repo.GiftRepository
 }
@@ -613,7 +613,7 @@ func (s *GiftService) DeleteGift(id uint) error {
 	return s.giftRepo.Delete(id)
 }
 
-// InventoryTransactionService 库存交易服务
+// InventoryTransactionService Inventory transaction service
 type InventoryTransactionService struct {
 	inventoryTransactionRepo *repo.InventoryTransactionRepository
 }
@@ -647,7 +647,7 @@ func (s *InventoryTransactionService) DeleteInventoryTransaction(id uint) error 
 	return s.inventoryTransactionRepo.Delete(id)
 }
 
-// DeliveryService 配送服务
+// DeliveryService Delivery service
 type DeliveryService struct {
 	deliveryRepo *repo.DeliveryRepository
 }
@@ -682,7 +682,7 @@ func (s *DeliveryService) DeleteDelivery(id uint) error {
 	return s.deliveryRepo.Delete(id)
 }
 
-// VolunteerProjectService 志愿者-项目关联服务
+// VolunteerProjectService Volunteer-Project association service
 type VolunteerProjectService struct {
 	repo *repo.VolunteerProjectRepository
 }
@@ -693,7 +693,7 @@ func NewVolunteerProjectService(repo *repo.VolunteerProjectRepository) *Voluntee
 
 func (s *VolunteerProjectService) Create(vp *models.VolunteerProject) error {
 	if vp.VolunteerID == 0 || vp.ProjectID == 0 {
-		return errors.New("志愿者ID和项目ID不能为空")
+		return errors.New("volunteer ID and project ID cannot be empty")
 	}
 	vp.Status = "active"
 	return s.repo.Create(vp)
@@ -723,7 +723,7 @@ func (s *VolunteerProjectService) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-// EmployeeProjectService 员工-项目关联服务
+// EmployeeProjectService Employee-Project association service
 type EmployeeProjectService struct {
 	repo *repo.EmployeeProjectRepository
 }
@@ -734,7 +734,7 @@ func NewEmployeeProjectService(repo *repo.EmployeeProjectRepository) *EmployeePr
 
 func (s *EmployeeProjectService) Create(ep *models.EmployeeProject) error {
 	if ep.EmployeeID == 0 || ep.ProjectID == 0 {
-		return errors.New("员工ID和项目ID不能为空")
+		return errors.New("employee ID and project ID cannot be empty")
 	}
 	return s.repo.Create(ep)
 }
@@ -763,7 +763,7 @@ func (s *EmployeeProjectService) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-// FundProjectService 基金-项目关联服务
+// FundProjectService Fund-Project association service
 type FundProjectService struct {
 	repo *repo.FundProjectRepository
 }
@@ -774,10 +774,10 @@ func NewFundProjectService(repo *repo.FundProjectRepository) *FundProjectService
 
 func (s *FundProjectService) Create(fp *models.FundProject) error {
 	if fp.TransactionID == 0 || fp.ProjectID == 0 || fp.FundID == 0 {
-		return errors.New("交易ID、项目ID和基金ID不能为空")
+		return errors.New("transaction ID, project ID and fund ID cannot be empty")
 	}
 	if fp.AllocatedAmount <= 0 {
-		return errors.New("分配金额必须大于0")
+		return errors.New("allocated amount must be greater than 0")
 	}
 	return s.repo.Create(fp)
 }
@@ -806,7 +806,7 @@ func (s *FundProjectService) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-// DonationInventoryService 捐赠-库存关联服务（实物捐赠）
+// DonationInventoryService Donation-Inventory association service (in-kind donation)
 type DonationInventoryService struct {
 	repo *repo.DonationInventoryRepository
 }
@@ -817,7 +817,7 @@ func NewDonationInventoryService(repo *repo.DonationInventoryRepository) *Donati
 
 func (s *DonationInventoryService) Create(di *models.DonationInventory) error {
 	if di.DonorID == 0 || di.InventoryID == 0 {
-		return errors.New("捐赠者ID和库存ID不能为空")
+		return errors.New("donor ID and inventory ID cannot be empty")
 	}
 	if di.Quantity <= 0 {
 		di.Quantity = 1
@@ -849,7 +849,7 @@ func (s *DonationInventoryService) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-// ScheduleService 调度服务
+// ScheduleService Schedule service
 type ScheduleService struct {
 	repo *repo.ScheduleRepository
 }
@@ -860,20 +860,20 @@ func NewScheduleService(repo *repo.ScheduleRepository) *ScheduleService {
 
 func (s *ScheduleService) Create(schedule *models.Schedule) error {
 	if schedule.PersonID == 0 || schedule.PersonType == "" {
-		return errors.New("人员ID和人员类型不能为空")
+		return errors.New("person ID and person type cannot be empty")
 	}
 	if schedule.PersonType != "volunteer" && schedule.PersonType != "employee" {
-		return errors.New("人员类型必须是volunteer或employee")
+		return errors.New("person type must be volunteer or employee")
 	}
 	
-	// 生成调度ID
+	// Generate schedule ID
 	schedule.ScheduleID = fmt.Sprintf("SCH-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%10000)
 	schedule.Status = "scheduled"
 	
-	// 计算工作小时数
+	// Calculate work hours
 	if schedule.HoursWorked == 0 && schedule.StartTime != "" && schedule.EndTime != "" {
-		// 这里可以添加时间计算逻辑
-		schedule.HoursWorked = 8.0 // 默认值
+		// Time calculation logic can be added here
+		schedule.HoursWorked = 8.0 // Default value
 	}
 	
 	return s.repo.Create(schedule)

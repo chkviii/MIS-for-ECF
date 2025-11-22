@@ -22,7 +22,7 @@ func (r *ProjectRepository) Create(project *models.Project) error {
 // GetByID 根据ID获取项目
 func (r *ProjectRepository) GetByID(id uint) (*models.Project, error) {
 	var project models.Project
-	err := r.db.Preload("Location").Preload("ProjectManager").First(&project, id).Error
+	err := r.db.Preload("Location").First(&project, id).Error
 	return &project, err
 }
 
@@ -36,7 +36,7 @@ func (r *ProjectRepository) GetByProjectID(projectID string) (*models.Project, e
 // GetAll 获取所有项目
 func (r *ProjectRepository) GetAll() ([]models.Project, error) {
 	var projects []models.Project
-	err := r.db.Preload("Location").Preload("ProjectManager").Find(&projects).Error
+	err := r.db.Preload("Location").Find(&projects).Error
 	return projects, err
 }
 
@@ -82,7 +82,7 @@ func (r *ProjectRepository) AssignEmployee(ep *models.EmployeeProject) error {
 }
 
 func (r *ProjectRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Project, error) {
-	tx := r.db.Preload("Location").Preload("ProjectManager")
+	tx := r.db.Preload("Location")
 	
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -290,7 +290,7 @@ func (r *EmployeeRepository) Create(employee *models.Employee) error {
 
 func (r *EmployeeRepository) GetByID(id uint) (*models.Employee, error) {
 	var employee models.Employee
-	err := r.db.Preload("Location").Preload("Supervisor").First(&employee, id).Error
+	err := r.db.Preload("Location").First(&employee, id).Error
 	return &employee, err
 }
 
@@ -309,7 +309,7 @@ func (r *EmployeeRepository) Delete(id uint) error {
 }
 
 func (r *EmployeeRepository) Search(query map[string]interface{}) ([]models.Employee, error) {
-	tx := r.db.Preload("Location").Preload("Supervisor")
+	tx := r.db.Preload("Location")
 	
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -337,7 +337,7 @@ func (r *LocationRepository) Create(location *models.Location) error {
 
 func (r *LocationRepository) GetByID(id uint) (*models.Location, error) {
 	var location models.Location
-	err := r.db.Preload("ParentLocation").First(&location, id).Error
+	err := r.db.First(&location, id).Error
 	return &location, err
 }
 
@@ -356,7 +356,7 @@ func (r *LocationRepository) Delete(id uint) error {
 }
 
 func (r *LocationRepository) Search(query map[string]interface{}) ([]models.Location, error) {
-	tx := r.db.Preload("ParentLocation")
+	tx := r.db.Model(&models.Location{})
 	
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -384,7 +384,7 @@ func (r *FundRepository) Create(fund *models.Fund) error {
 
 func (r *FundRepository) GetByID(id uint) (*models.Fund, error) {
 	var fund models.Fund
-	err := r.db.Preload("Donor").Preload("Project").Preload("FundManager").First(&fund, id).Error
+	err := r.db.Preload("Donor").Preload("Project").First(&fund, id).Error
 	return &fund, err
 }
 
@@ -734,18 +734,18 @@ func (r *GiftRepository) Create(gift *models.Gift) error {
 
 func (r *GiftRepository) GetByID(id uint) (*models.Gift, error) {
 	var gift models.Gift
-	err := r.db.Preload("Donor").Preload("Donation").Preload("GiftType").First(&gift, id).Error
+	err := r.db.Preload("Donation").Preload("Delivery").Preload("GiftType").First(&gift, id).Error
 	return &gift, err
 }
 
 func (r *GiftRepository) GetAll() ([]models.Gift, error) {
 	var gifts []models.Gift
-	err := r.db.Preload("Donor").Preload("Donation").Preload("GiftType").Find(&gifts).Error
+	err := r.db.Preload("Donation").Preload("Delivery").Preload("GiftType").Find(&gifts).Error
 	return gifts, err
 }
 
 func (r *GiftRepository) Search(query map[string]interface{}, startDate, endDate *time.Time) ([]models.Gift, error) {
-	tx := r.db.Preload("Donor").Preload("Donation").Preload("GiftType")
+	tx := r.db.Preload("Donation").Preload("Delivery").Preload("GiftType")
 	
 	for key, value := range query {
 		if value != "" && value != nil {

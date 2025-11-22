@@ -82,7 +82,7 @@ func NewERPHandler(
 	}
 }
 
-// 辅助函数：解析日期范围
+// Helper function: Parse date range
 func parseDateRange(c *gin.Context) (*time.Time, *time.Time) {
 	var startDate, endDate *time.Time
 
@@ -101,7 +101,7 @@ func parseDateRange(c *gin.Context) (*time.Time, *time.Time) {
 	return startDate, endDate
 }
 
-// ==================== 项目管理 ====================
+// ==================== Project Management ====================
 
 func (h *ERPHandler) CreateProject(c *gin.Context) {
 	var project models.Project
@@ -115,19 +115,19 @@ func (h *ERPHandler) CreateProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": project, "message": "项目创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": project, "message": "Project created successfully"})
 }
 
 func (h *ERPHandler) GetProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的项目ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
 		return
 	}
 
 	project, err := h.projectService.GetProject(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "项目不存在"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
 		return
 	}
 
@@ -153,10 +153,34 @@ func (h *ERPHandler) GetAllProjects(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": projects, "count": len(projects)})
 }
 
+func (h *ERPHandler) SearchProjects(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if name := c.Query("name"); name != "" {
+		query["name"] = name
+	}
+	if status := c.Query("status"); status != "" {
+		query["status"] = status
+	}
+	if projectID := c.Query("project_id"); projectID != "" {
+		query["project_id"] = projectID
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	projects, err := h.projectService.SearchProjects(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": projects, "count": len(projects)})
+}
+
 func (h *ERPHandler) UpdateProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的项目ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
 		return
 	}
 
@@ -172,13 +196,13 @@ func (h *ERPHandler) UpdateProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": project, "message": "项目更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": project, "message": "Project updated successfully"})
 }
 
 func (h *ERPHandler) DeleteProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的项目ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
 		return
 	}
 
@@ -187,10 +211,10 @@ func (h *ERPHandler) DeleteProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "项目删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Project deleted successfully"})
 }
 
-// ==================== 捐赠者管理 ====================
+// ==================== Donor Management ====================
 
 func (h *ERPHandler) CreateDonor(c *gin.Context) {
 	var donor models.Donor
@@ -204,19 +228,19 @@ func (h *ERPHandler) CreateDonor(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": donor, "message": "捐赠者创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": donor, "message": "Donor created successfully"})
 }
 
 func (h *ERPHandler) GetDonor(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的捐赠者ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid donor ID"})
 		return
 	}
 
 	donor, err := h.donorService.GetDonor(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "捐赠者不存在"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Donor not found"})
 		return
 	}
 
@@ -233,10 +257,40 @@ func (h *ERPHandler) GetAllDonors(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": donors, "count": len(donors)})
 }
 
+func (h *ERPHandler) SearchDonors(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if firstName := c.Query("first_name"); firstName != "" {
+		query["first_name"] = firstName
+	}
+	if lastName := c.Query("last_name"); lastName != "" {
+		query["last_name"] = lastName
+	}
+	if email := c.Query("email"); email != "" {
+		query["email"] = email
+	}
+	if status := c.Query("status"); status != "" {
+		query["status"] = status
+	}
+	if donorID := c.Query("donor_id"); donorID != "" {
+		query["donor_id"] = donorID
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	donors, err := h.donorService.SearchDonors(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": donors, "count": len(donors)})
+}
+
 func (h *ERPHandler) UpdateDonor(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的捐赠者ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid donor ID"})
 		return
 	}
 
@@ -252,13 +306,13 @@ func (h *ERPHandler) UpdateDonor(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": donor, "message": "捐赠者更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": donor, "message": "Donor updated successfully"})
 }
 
 func (h *ERPHandler) DeleteDonor(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的捐赠者ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid donor ID"})
 		return
 	}
 
@@ -267,10 +321,10 @@ func (h *ERPHandler) DeleteDonor(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "捐赠者删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Donor deleted successfully"})
 }
 
-// ==================== 捐赠管理 ====================
+// ==================== Donation Management ====================
 
 func (h *ERPHandler) CreateDonation(c *gin.Context) {
 	var donation models.Donation
@@ -284,7 +338,7 @@ func (h *ERPHandler) CreateDonation(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": donation, "message": "捐赠记录创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": donation, "message": "Donation created successfully"})
 }
 
 func (h *ERPHandler) GetAllDonations(c *gin.Context) {
@@ -296,7 +350,7 @@ func (h *ERPHandler) GetAllDonations(c *gin.Context) {
 	if donorIDStr != "" {
 		donorID, parseErr := strconv.ParseUint(donorIDStr, 10, 32)
 		if parseErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "无效的捐赠者ID"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid donor ID"})
 			return
 		}
 		donations, err = h.donationService.GetDonationsByDonor(uint(donorID))
@@ -312,10 +366,34 @@ func (h *ERPHandler) GetAllDonations(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": donations, "count": len(donations)})
 }
 
+func (h *ERPHandler) SearchDonations(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if donationID := c.Query("donation_id"); donationID != "" {
+		query["donation_id"] = donationID
+	}
+	if donationType := c.Query("donation_type"); donationType != "" {
+		query["donation_type"] = donationType
+	}
+	if paymentMethod := c.Query("payment_method"); paymentMethod != "" {
+		query["payment_method"] = paymentMethod
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	donations, err := h.donationService.SearchDonations(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": donations, "count": len(donations)})
+}
+
 func (h *ERPHandler) UpdateDonation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的捐赠ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid donation ID"})
 		return
 	}
 
@@ -331,13 +409,13 @@ func (h *ERPHandler) UpdateDonation(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": donation, "message": "捐赠记录更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": donation, "message": "Donation updated successfully"})
 }
 
 func (h *ERPHandler) DeleteDonation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的捐赠ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid donation ID"})
 		return
 	}
 
@@ -346,10 +424,10 @@ func (h *ERPHandler) DeleteDonation(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "捐赠记录删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Donation deleted successfully"})
 }
 
-// ==================== 志愿者管理 ====================
+// ==================== Volunteer Management ====================
 
 func (h *ERPHandler) CreateVolunteer(c *gin.Context) {
 	var volunteer models.Volunteer
@@ -363,7 +441,7 @@ func (h *ERPHandler) CreateVolunteer(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": volunteer, "message": "志愿者创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": volunteer, "message": "Volunteer created successfully"})
 }
 
 func (h *ERPHandler) GetAllVolunteers(c *gin.Context) {
@@ -376,10 +454,35 @@ func (h *ERPHandler) GetAllVolunteers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": volunteers, "count": len(volunteers)})
 }
 
+func (h *ERPHandler) SearchVolunteers(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if firstName := c.Query("first_name"); firstName != "" {
+		query["first_name"] = firstName
+	}
+	if lastName := c.Query("last_name"); lastName != "" {
+		query["last_name"] = lastName
+	}
+	if status := c.Query("status"); status != "" {
+		query["status"] = status
+	}
+	if volunteerID := c.Query("volunteer_id"); volunteerID != "" {
+		query["volunteer_id"] = volunteerID
+	}
+
+	volunteers, err := h.volunteerService.SearchVolunteers(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": volunteers, "count": len(volunteers)})
+}
+
 func (h *ERPHandler) UpdateVolunteer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的志愿者ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid volunteer ID"})
 		return
 	}
 
@@ -395,13 +498,13 @@ func (h *ERPHandler) UpdateVolunteer(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": volunteer, "message": "志愿者更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": volunteer, "message": "Volunteer updated successfully"})
 }
 
 func (h *ERPHandler) DeleteVolunteer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的志愿者ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid volunteer ID"})
 		return
 	}
 
@@ -410,10 +513,10 @@ func (h *ERPHandler) DeleteVolunteer(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "志愿者删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Volunteer deleted successfully"})
 }
 
-// ==================== 员工管理 ====================
+// ==================== Employee Management ====================
 
 func (h *ERPHandler) CreateEmployee(c *gin.Context) {
 	var employee models.Employee
@@ -427,7 +530,7 @@ func (h *ERPHandler) CreateEmployee(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": employee, "message": "员工创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": employee, "message": "Employee created successfully"})
 }
 
 func (h *ERPHandler) GetAllEmployees(c *gin.Context) {
@@ -440,10 +543,38 @@ func (h *ERPHandler) GetAllEmployees(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": employees, "count": len(employees)})
 }
 
+func (h *ERPHandler) SearchEmployees(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if firstName := c.Query("first_name"); firstName != "" {
+		query["first_name"] = firstName
+	}
+	if lastName := c.Query("last_name"); lastName != "" {
+		query["last_name"] = lastName
+	}
+	if position := c.Query("position"); position != "" {
+		query["position"] = position
+	}
+	if status := c.Query("status"); status != "" {
+		query["status"] = status
+	}
+	if employeeID := c.Query("employee_id"); employeeID != "" {
+		query["employee_id"] = employeeID
+	}
+
+	employees, err := h.employeeService.SearchEmployees(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": employees, "count": len(employees)})
+}
+
 func (h *ERPHandler) UpdateEmployee(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的员工ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid employee ID"})
 		return
 	}
 
@@ -459,13 +590,13 @@ func (h *ERPHandler) UpdateEmployee(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": employee, "message": "员工更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": employee, "message": "Employee updated successfully"})
 }
 
 func (h *ERPHandler) DeleteEmployee(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的员工ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid employee ID"})
 		return
 	}
 
@@ -474,10 +605,10 @@ func (h *ERPHandler) DeleteEmployee(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "员工删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Employee deleted successfully"})
 }
 
-// ==================== 地点管理 ====================
+// ==================== Location Management ====================
 
 func (h *ERPHandler) CreateLocation(c *gin.Context) {
 	var location models.Location
@@ -491,7 +622,7 @@ func (h *ERPHandler) CreateLocation(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": location, "message": "地点创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": location, "message": "Location created successfully"})
 }
 
 func (h *ERPHandler) GetAllLocations(c *gin.Context) {
@@ -504,10 +635,35 @@ func (h *ERPHandler) GetAllLocations(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": locations, "count": len(locations)})
 }
 
+func (h *ERPHandler) SearchLocations(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if name := c.Query("name"); name != "" {
+		query["name"] = name
+	}
+	if address := c.Query("address"); address != "" {
+		query["address"] = address
+	}
+	if locationType := c.Query("location_type"); locationType != "" {
+		query["location_type"] = locationType
+	}
+	if locationID := c.Query("location_id"); locationID != "" {
+		query["location_id"] = locationID
+	}
+
+	locations, err := h.locationService.SearchLocations(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": locations, "count": len(locations)})
+}
+
 func (h *ERPHandler) UpdateLocation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的地点ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid location ID"})
 		return
 	}
 
@@ -523,13 +679,13 @@ func (h *ERPHandler) UpdateLocation(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": location, "message": "地点更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": location, "message": "Location updated successfully"})
 }
 
 func (h *ERPHandler) DeleteLocation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的地点ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid location ID"})
 		return
 	}
 
@@ -538,10 +694,10 @@ func (h *ERPHandler) DeleteLocation(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "地点删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Location deleted successfully"})
 }
 
-// ==================== 基金管理 ====================
+// ==================== Fund Management ====================
 func (h *ERPHandler) CreateFund(c *gin.Context) {
 	var fund models.Fund
 	if err := c.ShouldBindJSON(&fund); err != nil {
@@ -554,7 +710,7 @@ func (h *ERPHandler) CreateFund(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": fund, "message": "基金创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": fund, "message": "Fund created successfully"})
 }
 
 func (h *ERPHandler) GetAllFunds(c *gin.Context) {
@@ -567,16 +723,40 @@ func (h *ERPHandler) GetAllFunds(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": funds, "count": len(funds)})
 }
 
+func (h *ERPHandler) SearchFunds(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if name := c.Query("name"); name != "" {
+		query["name"] = name
+	}
+	if fundID := c.Query("fund_id"); fundID != "" {
+		query["fund_id"] = fundID
+	}
+	if status := c.Query("status"); status != "" {
+		query["status"] = status
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	funds, err := h.fundService.SearchFunds(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": funds, "count": len(funds)})
+}
+
 func (h *ERPHandler) GetFund(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的基金ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid fund ID"})
 		return
 	}
 
 	fund, err := h.fundService.GetFund(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "基金不存在"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Fund not found"})
 		return
 	}
 
@@ -586,7 +766,7 @@ func (h *ERPHandler) GetFund(c *gin.Context) {
 func (h *ERPHandler) UpdateFund(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的基金ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid fund ID"})
 		return
 	}
 
@@ -602,13 +782,13 @@ func (h *ERPHandler) UpdateFund(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": fund, "message": "基金更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": fund, "message": "Fund updated successfully"})
 }
 
 func (h *ERPHandler) DeleteFund(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的基金ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid fund ID"})
 		return
 	}
 
@@ -617,10 +797,10 @@ func (h *ERPHandler) DeleteFund(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "基金删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Fund deleted successfully"})
 }
 
-// ==================== 支出管理 ====================
+// ==================== Expense Management ====================
 func (h *ERPHandler) CreateExpense(c *gin.Context) {
 	var expense models.Expense
 	if err := c.ShouldBindJSON(&expense); err != nil {
@@ -633,7 +813,7 @@ func (h *ERPHandler) CreateExpense(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": expense, "message": "支出记录创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": expense, "message": "Expense created successfully"})
 }
 
 func (h *ERPHandler) GetAllExpenses(c *gin.Context) {
@@ -646,10 +826,34 @@ func (h *ERPHandler) GetAllExpenses(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": expenses, "count": len(expenses)})
 }
 
+func (h *ERPHandler) SearchExpenses(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if expenseID := c.Query("expense_id"); expenseID != "" {
+		query["expense_id"] = expenseID
+	}
+	if category := c.Query("category"); category != "" {
+		query["category"] = category
+	}
+	if approvalStatus := c.Query("approval_status"); approvalStatus != "" {
+		query["approval_status"] = approvalStatus
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	expenses, err := h.expenseService.SearchExpenses(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": expenses, "count": len(expenses)})
+}
+
 func (h *ERPHandler) UpdateExpense(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的支出ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid expense ID"})
 		return
 	}
 
@@ -665,13 +869,13 @@ func (h *ERPHandler) UpdateExpense(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": expense, "message": "支出记录更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": expense, "message": "Expense updated successfully"})
 }
 
 func (h *ERPHandler) DeleteExpense(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的支出ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid expense ID"})
 		return
 	}
 
@@ -680,10 +884,10 @@ func (h *ERPHandler) DeleteExpense(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "支出记录删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Expense deleted successfully"})
 }
 
-// ==================== 交易管理 ====================
+// ==================== Transaction Management ====================
 func (h *ERPHandler) CreateTransaction(c *gin.Context) {
 	var transaction models.Transaction
 	if err := c.ShouldBindJSON(&transaction); err != nil {
@@ -696,7 +900,7 @@ func (h *ERPHandler) CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": transaction, "message": "交易记录创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": transaction, "message": "Transaction created successfully"})
 }
 
 func (h *ERPHandler) GetAllTransactions(c *gin.Context) {
@@ -709,10 +913,31 @@ func (h *ERPHandler) GetAllTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": transactions, "count": len(transactions)})
 }
 
+func (h *ERPHandler) SearchTransactions(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if transactionID := c.Query("transaction_id"); transactionID != "" {
+		query["transaction_id"] = transactionID
+	}
+	if transactionType := c.Query("transaction_type"); transactionType != "" {
+		query["transaction_type"] = transactionType
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	transactions, err := h.transactionService.SearchTransactions(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": transactions, "count": len(transactions)})
+}
+
 func (h *ERPHandler) UpdateTransaction(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的交易ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
 		return
 	}
 
@@ -728,13 +953,13 @@ func (h *ERPHandler) UpdateTransaction(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": transaction, "message": "交易记录更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": transaction, "message": "Transaction updated successfully"})
 }
 
 func (h *ERPHandler) DeleteTransaction(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的交易ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid transaction ID"})
 		return
 	}
 
@@ -743,10 +968,10 @@ func (h *ERPHandler) DeleteTransaction(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "交易记录删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Transaction deleted successfully"})
 }
 
-// ==================== 采购管理 ====================
+// ==================== Purchase Management ====================
 func (h *ERPHandler) CreatePurchase(c *gin.Context) {
 	var purchase models.Purchase
 	if err := c.ShouldBindJSON(&purchase); err != nil {
@@ -759,7 +984,7 @@ func (h *ERPHandler) CreatePurchase(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": purchase, "message": "采购记录创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": purchase, "message": "Purchase created successfully"})
 }
 
 func (h *ERPHandler) GetAllPurchases(c *gin.Context) {
@@ -772,10 +997,31 @@ func (h *ERPHandler) GetAllPurchases(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": purchases, "count": len(purchases)})
 }
 
+func (h *ERPHandler) SearchPurchases(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if purchaseID := c.Query("purchase_id"); purchaseID != "" {
+		query["purchase_id"] = purchaseID
+	}
+	if supplier := c.Query("supplier"); supplier != "" {
+		query["supplier"] = supplier
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	purchases, err := h.purchaseService.SearchPurchases(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": purchases, "count": len(purchases)})
+}
+
 func (h *ERPHandler) UpdatePurchase(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的采购ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid purchase ID"})
 		return
 	}
 
@@ -791,13 +1037,13 @@ func (h *ERPHandler) UpdatePurchase(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": purchase, "message": "采购记录更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": purchase, "message": "Purchase updated successfully"})
 }
 
 func (h *ERPHandler) DeletePurchase(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的采购ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid purchase ID"})
 		return
 	}
 
@@ -806,10 +1052,10 @@ func (h *ERPHandler) DeletePurchase(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "采购记录删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Purchase deleted successfully"})
 }
 
-// ==================== 薪资管理 ====================
+// ==================== Payroll Management ====================
 func (h *ERPHandler) CreatePayroll(c *gin.Context) {
 	var payroll models.Payroll
 	if err := c.ShouldBindJSON(&payroll); err != nil {
@@ -822,7 +1068,7 @@ func (h *ERPHandler) CreatePayroll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": payroll, "message": "薪资记录创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": payroll, "message": "Payroll created successfully"})
 }
 
 func (h *ERPHandler) GetAllPayrolls(c *gin.Context) {
@@ -835,10 +1081,28 @@ func (h *ERPHandler) GetAllPayrolls(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": payrolls, "count": len(payrolls)})
 }
 
+func (h *ERPHandler) SearchPayrolls(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if paymentMethod := c.Query("payment_method"); paymentMethod != "" {
+		query["payment_method"] = paymentMethod
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	payrolls, err := h.payrollService.SearchPayrolls(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": payrolls, "count": len(payrolls)})
+}
+
 func (h *ERPHandler) UpdatePayroll(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的薪资ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payroll ID"})
 		return
 	}
 
@@ -854,13 +1118,13 @@ func (h *ERPHandler) UpdatePayroll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": payroll, "message": "薪资记录更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": payroll, "message": "Payroll updated successfully"})
 }
 
 func (h *ERPHandler) DeletePayroll(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的薪资ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payroll ID"})
 		return
 	}
 
@@ -869,10 +1133,10 @@ func (h *ERPHandler) DeletePayroll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "薪资记录删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Payroll deleted successfully"})
 }
 
-// ==================== 库存管理 ====================
+// ==================== Inventory Management ====================
 func (h *ERPHandler) CreateInventory(c *gin.Context) {
 	var inventory models.Inventory
 	if err := c.ShouldBindJSON(&inventory); err != nil {
@@ -885,7 +1149,7 @@ func (h *ERPHandler) CreateInventory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": inventory, "message": "库存创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": inventory, "message": "Inventory created successfully"})
 }
 
 func (h *ERPHandler) GetAllInventories(c *gin.Context) {
@@ -898,10 +1162,32 @@ func (h *ERPHandler) GetAllInventories(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": inventories, "count": len(inventories)})
 }
 
+func (h *ERPHandler) SearchInventories(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if name := c.Query("name"); name != "" {
+		query["name"] = name
+	}
+	if inventoryID := c.Query("inventory_id"); inventoryID != "" {
+		query["inventory_id"] = inventoryID
+	}
+	if status := c.Query("status"); status != "" {
+		query["status"] = status
+	}
+
+	inventories, err := h.inventoryService.SearchInventories(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": inventories, "count": len(inventories)})
+}
+
 func (h *ERPHandler) UpdateInventory(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的库存ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid inventory ID"})
 		return
 	}
 
@@ -917,13 +1203,13 @@ func (h *ERPHandler) UpdateInventory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": inventory, "message": "库存更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": inventory, "message": "Inventory updated successfully"})
 }
 
 func (h *ERPHandler) DeleteInventory(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的库存ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid inventory ID"})
 		return
 	}
 
@@ -932,10 +1218,10 @@ func (h *ERPHandler) DeleteInventory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "库存删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Inventory deleted successfully"})
 }
 
-// ==================== 礼品类型管理 ====================
+// ==================== Gift Type Management ====================
 func (h *ERPHandler) CreateGiftType(c *gin.Context) {
 	var giftType models.GiftType
 	if err := c.ShouldBindJSON(&giftType); err != nil {
@@ -948,7 +1234,7 @@ func (h *ERPHandler) CreateGiftType(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": giftType, "message": "礼品类型创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": giftType, "message": "Gift type created successfully"})
 }
 
 func (h *ERPHandler) GetAllGiftTypes(c *gin.Context) {
@@ -964,7 +1250,7 @@ func (h *ERPHandler) GetAllGiftTypes(c *gin.Context) {
 func (h *ERPHandler) UpdateGiftType(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的礼品类型ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gift type ID"})
 		return
 	}
 
@@ -980,13 +1266,13 @@ func (h *ERPHandler) UpdateGiftType(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": giftType, "message": "礼品类型更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": giftType, "message": "Gift type updated successfully"})
 }
 
 func (h *ERPHandler) DeleteGiftType(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的礼品类型ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gift type ID"})
 		return
 	}
 
@@ -995,10 +1281,10 @@ func (h *ERPHandler) DeleteGiftType(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "礼品类型删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Gift type deleted successfully"})
 }
 
-// ==================== 礼品管理 ====================
+// ==================== Gift Management ====================
 func (h *ERPHandler) CreateGift(c *gin.Context) {
 	var gift models.Gift
 	if err := c.ShouldBindJSON(&gift); err != nil {
@@ -1011,7 +1297,7 @@ func (h *ERPHandler) CreateGift(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": gift, "message": "礼品记录创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": gift, "message": "Gift created successfully"})
 }
 
 func (h *ERPHandler) GetAllGifts(c *gin.Context) {
@@ -1024,10 +1310,31 @@ func (h *ERPHandler) GetAllGifts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": gifts, "count": len(gifts)})
 }
 
+func (h *ERPHandler) SearchGifts(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if giftID := c.Query("gift_id"); giftID != "" {
+		query["gift_id"] = giftID
+	}
+	if distributionStatus := c.Query("distribution_status"); distributionStatus != "" {
+		query["distribution_status"] = distributionStatus
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	gifts, err := h.giftService.SearchGifts(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": gifts, "count": len(gifts)})
+}
+
 func (h *ERPHandler) UpdateGift(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的礼品ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gift ID"})
 		return
 	}
 
@@ -1043,13 +1350,13 @@ func (h *ERPHandler) UpdateGift(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": gift, "message": "礼品记录更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": gift, "message": "Gift updated successfully"})
 }
 
 func (h *ERPHandler) DeleteGift(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的礼品ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gift ID"})
 		return
 	}
 
@@ -1058,10 +1365,10 @@ func (h *ERPHandler) DeleteGift(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "礼品记录删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Gift deleted successfully"})
 }
 
-// ==================== 库存交易管理 ====================
+// ==================== Inventory Transaction Management ====================
 func (h *ERPHandler) CreateInventoryTransaction(c *gin.Context) {
 	var transaction models.InventoryTransaction
 	if err := c.ShouldBindJSON(&transaction); err != nil {
@@ -1074,7 +1381,7 @@ func (h *ERPHandler) CreateInventoryTransaction(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": transaction, "message": "库存交易记录创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": transaction, "message": "Inventory transaction created successfully"})
 }
 
 func (h *ERPHandler) GetAllInventoryTransactions(c *gin.Context) {
@@ -1087,10 +1394,31 @@ func (h *ERPHandler) GetAllInventoryTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": transactions, "count": len(transactions)})
 }
 
+func (h *ERPHandler) SearchInventoryTransactions(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if transactionID := c.Query("transaction_id"); transactionID != "" {
+		query["transaction_id"] = transactionID
+	}
+	if transactionType := c.Query("transaction_type"); transactionType != "" {
+		query["transaction_type"] = transactionType
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	transactions, err := h.inventoryTransactionService.SearchInventoryTransactions(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": transactions, "count": len(transactions)})
+}
+
 func (h *ERPHandler) UpdateInventoryTransaction(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的库存交易ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid inventory transaction ID"})
 		return
 	}
 
@@ -1106,13 +1434,13 @@ func (h *ERPHandler) UpdateInventoryTransaction(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": transaction, "message": "库存交易记录更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": transaction, "message": "Inventory transaction updated successfully"})
 }
 
 func (h *ERPHandler) DeleteInventoryTransaction(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的库存交易ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid inventory transaction ID"})
 		return
 	}
 
@@ -1121,10 +1449,10 @@ func (h *ERPHandler) DeleteInventoryTransaction(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "库存交易记录删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Inventory transaction deleted successfully"})
 }
 
-// ==================== 配送管理 ====================
+// ==================== Delivery Management ====================
 func (h *ERPHandler) CreateDelivery(c *gin.Context) {
 	var delivery models.Delivery
 	if err := c.ShouldBindJSON(&delivery); err != nil {
@@ -1137,7 +1465,7 @@ func (h *ERPHandler) CreateDelivery(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": delivery, "message": "配送记录创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": delivery, "message": "Delivery created successfully"})
 }
 
 func (h *ERPHandler) GetAllDeliveries(c *gin.Context) {
@@ -1150,10 +1478,31 @@ func (h *ERPHandler) GetAllDeliveries(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": deliveries, "count": len(deliveries)})
 }
 
+func (h *ERPHandler) SearchDeliveries(c *gin.Context) {
+	query := make(map[string]interface{})
+
+	if deliveryID := c.Query("delivery_id"); deliveryID != "" {
+		query["delivery_id"] = deliveryID
+	}
+	if status := c.Query("status"); status != "" {
+		query["status"] = status
+	}
+
+	startDate, endDate := parseDateRange(c)
+
+	deliveries, err := h.deliveryService.SearchDeliveries(query, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": deliveries, "count": len(deliveries)})
+}
+
 func (h *ERPHandler) UpdateDelivery(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的配送ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid delivery ID"})
 		return
 	}
 
@@ -1169,13 +1518,13 @@ func (h *ERPHandler) UpdateDelivery(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": delivery, "message": "配送记录更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": delivery, "message": "Delivery updated successfully"})
 }
 
 func (h *ERPHandler) DeleteDelivery(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的配送ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid delivery ID"})
 		return
 	}
 
@@ -1184,10 +1533,10 @@ func (h *ERPHandler) DeleteDelivery(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "配送记录删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Delivery deleted successfully"})
 }
 
-// ==================== 志愿者-项目关联管理 ====================
+// ==================== Volunteer-Project Association Management ====================
 func (h *ERPHandler) CreateVolunteerProject(c *gin.Context) {
 	var vp models.VolunteerProject
 	if err := c.ShouldBindJSON(&vp); err != nil {
@@ -1200,7 +1549,7 @@ func (h *ERPHandler) CreateVolunteerProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": vp, "message": "志愿者项目分配创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": vp, "message": "Volunteer project assignment created successfully"})
 }
 
 func (h *ERPHandler) GetAllVolunteerProjects(c *gin.Context) {
@@ -1216,7 +1565,7 @@ func (h *ERPHandler) GetAllVolunteerProjects(c *gin.Context) {
 func (h *ERPHandler) UpdateVolunteerProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
@@ -1232,13 +1581,13 @@ func (h *ERPHandler) UpdateVolunteerProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": vp, "message": "志愿者项目分配更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": vp, "message": "Volunteer project assignment updated successfully"})
 }
 
 func (h *ERPHandler) DeleteVolunteerProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
@@ -1247,10 +1596,10 @@ func (h *ERPHandler) DeleteVolunteerProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "志愿者项目分配删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Volunteer project assignment deleted successfully"})
 }
 
-// ==================== 员工-项目关联管理 ====================
+// ==================== Employee-Project Association Management ====================
 func (h *ERPHandler) CreateEmployeeProject(c *gin.Context) {
 	var ep models.EmployeeProject
 	if err := c.ShouldBindJSON(&ep); err != nil {
@@ -1263,7 +1612,7 @@ func (h *ERPHandler) CreateEmployeeProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": ep, "message": "员工项目分配创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": ep, "message": "Employee project assignment created successfully"})
 }
 
 func (h *ERPHandler) GetAllEmployeeProjects(c *gin.Context) {
@@ -1279,7 +1628,7 @@ func (h *ERPHandler) GetAllEmployeeProjects(c *gin.Context) {
 func (h *ERPHandler) UpdateEmployeeProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
@@ -1295,13 +1644,13 @@ func (h *ERPHandler) UpdateEmployeeProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": ep, "message": "员工项目分配更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": ep, "message": "Employee project assignment updated successfully"})
 }
 
 func (h *ERPHandler) DeleteEmployeeProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
@@ -1310,10 +1659,10 @@ func (h *ERPHandler) DeleteEmployeeProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "员工项目分配删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Employee project assignment deleted successfully"})
 }
 
-// ==================== 基金-项目关联管理 ====================
+// ==================== Fund-Project Association Management ====================
 func (h *ERPHandler) CreateFundProject(c *gin.Context) {
 	var fp models.FundProject
 	if err := c.ShouldBindJSON(&fp); err != nil {
@@ -1326,7 +1675,7 @@ func (h *ERPHandler) CreateFundProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": fp, "message": "基金项目分配创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": fp, "message": "Fund project allocation created successfully"})
 }
 
 func (h *ERPHandler) GetAllFundProjects(c *gin.Context) {
@@ -1342,7 +1691,7 @@ func (h *ERPHandler) GetAllFundProjects(c *gin.Context) {
 func (h *ERPHandler) UpdateFundProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
@@ -1358,13 +1707,13 @@ func (h *ERPHandler) UpdateFundProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": fp, "message": "基金项目分配更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": fp, "message": "Fund project allocation updated successfully"})
 }
 
 func (h *ERPHandler) DeleteFundProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
@@ -1373,10 +1722,10 @@ func (h *ERPHandler) DeleteFundProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "基金项目分配删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Fund project allocation deleted successfully"})
 }
 
-// ==================== 捐赠-库存关联管理 ====================
+// ==================== Donation-Inventory Association Management ====================
 func (h *ERPHandler) CreateDonationInventory(c *gin.Context) {
 	var di models.DonationInventory
 	if err := c.ShouldBindJSON(&di); err != nil {
@@ -1389,7 +1738,7 @@ func (h *ERPHandler) CreateDonationInventory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": di, "message": "实物捐赠记录创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": di, "message": "In-kind donation created successfully"})
 }
 
 func (h *ERPHandler) GetAllDonationInventories(c *gin.Context) {
@@ -1405,7 +1754,7 @@ func (h *ERPHandler) GetAllDonationInventories(c *gin.Context) {
 func (h *ERPHandler) UpdateDonationInventory(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
@@ -1421,13 +1770,13 @@ func (h *ERPHandler) UpdateDonationInventory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": di, "message": "实物捐赠记录更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": di, "message": "In-kind donation updated successfully"})
 }
 
 func (h *ERPHandler) DeleteDonationInventory(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
 
@@ -1436,10 +1785,10 @@ func (h *ERPHandler) DeleteDonationInventory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "实物捐赠记录删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "In-kind donation deleted successfully"})
 }
 
-// ==================== 调度管理 ====================
+// ==================== Schedule Management ====================
 func (h *ERPHandler) CreateSchedule(c *gin.Context) {
 	var schedule models.Schedule
 	if err := c.ShouldBindJSON(&schedule); err != nil {
@@ -1452,7 +1801,7 @@ func (h *ERPHandler) CreateSchedule(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": schedule, "message": "调度记录创建成功"})
+	c.JSON(http.StatusCreated, gin.H{"data": schedule, "message": "Schedule created successfully"})
 }
 
 func (h *ERPHandler) GetAllSchedules(c *gin.Context) {
@@ -1468,7 +1817,7 @@ func (h *ERPHandler) GetAllSchedules(c *gin.Context) {
 func (h *ERPHandler) UpdateSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的调度ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid schedule ID"})
 		return
 	}
 
@@ -1484,13 +1833,13 @@ func (h *ERPHandler) UpdateSchedule(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": schedule, "message": "调度记录更新成功"})
+	c.JSON(http.StatusOK, gin.H{"data": schedule, "message": "Schedule updated successfully"})
 }
 
 func (h *ERPHandler) DeleteSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的调度ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid schedule ID"})
 		return
 	}
 
@@ -1499,5 +1848,5 @@ func (h *ERPHandler) DeleteSchedule(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "调度记录删除成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "Schedule deleted successfully"})
 }

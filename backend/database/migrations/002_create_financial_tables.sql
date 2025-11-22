@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS funds (
     fund_id VARCHAR(20) UNIQUE NOT NULL,
     donor_id INTEGER,
     project_id INTEGER,
+    transaction_id INTEGER,
     name VARCHAR(200) NOT NULL,
     fund_type VARCHAR(20) NOT NULL,
     total_amount DECIMAL(12,2) NOT NULL,
@@ -42,7 +43,8 @@ CREATE TABLE IF NOT EXISTS funds (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (donor_id) REFERENCES donors(id),
-    FOREIGN KEY (project_id) REFERENCES projects(id)
+    FOREIGN KEY (project_id) REFERENCES projects(id),
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id)
 );
 
 -- 支出记录表
@@ -52,6 +54,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     fund_id INTEGER NOT NULL,
     project_id INTEGER,
     employee_id INTEGER,
+    transaction_id INTEGER,
     description TEXT NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     expense_date DATE NOT NULL,
@@ -60,7 +63,8 @@ CREATE TABLE IF NOT EXISTS expenses (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (fund_id) REFERENCES funds(id),
     FOREIGN KEY (project_id) REFERENCES projects(id),
-    FOREIGN KEY (employee_id) REFERENCES employees(id)
+    FOREIGN KEY (employee_id) REFERENCES employees(id),
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id)
 );
 
 -- 采购表

@@ -43,6 +43,7 @@ type Fund struct {
 	FundID         string    `gorm:"size:20;unique;not null" json:"fund_id"`
 	DonorID        *uint     `json:"donor_id"`
 	ProjectID      *uint     `json:"project_id"`
+	TransactionID  *uint     `json:"transaction_id"`
 	Name           string    `gorm:"size:200;not null" json:"name"`
 	FundType       string    `gorm:"size:20;not null" json:"fund_type"`
 	TotalAmount    float64   `gorm:"type:decimal(12,2);not null" json:"total_amount"`
@@ -52,9 +53,10 @@ type Fund struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 
 	// 关联
-	Donor    *Donor    `json:"donor,omitempty"`
-	Project  *Project  `json:"project,omitempty"`
-	Expenses []Expense `json:"expenses,omitempty"`
+	Donor       *Donor       `json:"donor,omitempty"`
+	Project     *Project     `json:"project,omitempty"`
+	Transaction *Transaction `json:"transaction,omitempty"`
+	Expenses    []Expense    `json:"expenses,omitempty"`
 }
 
 // Expense 支出记录表
@@ -64,6 +66,7 @@ type Expense struct {
 	FundID         uint       `gorm:"not null" json:"fund_id"`
 	ProjectID      *uint      `json:"project_id"`
 	EmployeeID     *uint      `json:"employee_id"`
+	TransactionID  *uint      `json:"transaction_id"`
 	Description    string     `gorm:"not null" json:"description"`
 	Amount         float64    `gorm:"type:decimal(10,2);not null" json:"amount"`
 	ExpenseDate    time.Time  `json:"expense_date"`
@@ -72,9 +75,10 @@ type Expense struct {
 	UpdatedAt      time.Time  `json:"updated_at"`
 
 	// 关联
-	Fund     Fund      `json:"fund,omitempty"`
-	Project  *Project  `json:"project,omitempty"`
-	Employee *Employee `json:"employee,omitempty"`
+	Fund        Fund         `json:"fund,omitempty"`
+	Project     *Project     `json:"project,omitempty"`
+	Employee    *Employee    `json:"employee,omitempty"`
+	Transaction *Transaction `json:"transaction,omitempty"`
 }
 
 // Purchase 采购表
@@ -147,8 +151,8 @@ type GiftType struct {
 type Gift struct {
 	ID                 uint      `gorm:"primaryKey" json:"id"`
 	GiftID             string    `gorm:"size:20;unique;not null" json:"gift_id"`
-	DonorID            *uint     `json:"donor_id"`
 	DonationID         *uint     `json:"donation_id"`
+	DeliveryID         *uint     `json:"delivery_id"`
 	GiftTypeID         uint      `gorm:"not null" json:"gift_type_id"`
 	Quantity           int       `gorm:"default:1" json:"quantity"`
 	TotalValue         float64   `gorm:"type:decimal(10,2)" json:"total_value"`
@@ -157,8 +161,8 @@ type Gift struct {
 	UpdatedAt          time.Time `json:"updated_at"`
 
 	// 关联
-	Donor    *Donor    `json:"donor,omitempty"`
 	Donation *Donation `json:"donation,omitempty"`
+	Delivery *Delivery `json:"delivery,omitempty"`
 	GiftType GiftType  `json:"gift_type,omitempty"`
 }
 

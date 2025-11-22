@@ -34,7 +34,6 @@ type Donor struct {
 	// 关联
 	Donations []Donation `json:"donations,omitempty"`
 	Funds     []Fund     `json:"funds,omitempty"`
-	Gifts     []Gift     `json:"gifts,omitempty"`
 }
 
 // Volunteer 志愿者表

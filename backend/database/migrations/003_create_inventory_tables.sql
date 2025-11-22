@@ -31,16 +31,16 @@ CREATE TABLE IF NOT EXISTS gift_types (
 CREATE TABLE IF NOT EXISTS gifts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     gift_id VARCHAR(20) UNIQUE NOT NULL,
-    donor_id INTEGER,
     donation_id INTEGER,
+    delivery_id INTEGER,
     gift_type_id INTEGER NOT NULL,
     quantity INTEGER DEFAULT 1,
     total_value DECIMAL(10,2),
     distribution_status VARCHAR(20) DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (donor_id) REFERENCES donors(id),
     FOREIGN KEY (donation_id) REFERENCES donations(id),
+    FOREIGN KEY (delivery_id) REFERENCES deliveries(id),
     FOREIGN KEY (gift_type_id) REFERENCES gift_types(id)
 );
 
@@ -76,5 +76,5 @@ CREATE TABLE IF NOT EXISTS deliveries (
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_inventory_category ON inventory(category);
 CREATE INDEX IF NOT EXISTS idx_inventory_status ON inventory(status);
-CREATE INDEX IF NOT EXISTS idx_gifts_donor ON gifts(donor_id);
+CREATE INDEX IF NOT EXISTS idx_gifts_delivery ON gifts(delivery_id);
 CREATE INDEX IF NOT EXISTS idx_deliveries_project ON deliveries(project_id);

@@ -148,6 +148,7 @@ func main() {
 		projects := v1.Group("/projects")
 		{
 			projects.GET("", erpHandler.GetAllProjects)
+			projects.GET("/search", erpHandler.SearchProjects)
 			projects.POST("", erpHandler.CreateProject)
 			projects.GET("/:id", erpHandler.GetProject)
 			projects.PUT("/:id", erpHandler.UpdateProject)
@@ -158,6 +159,7 @@ func main() {
 		donors := v1.Group("/donors")
 		{
 			donors.GET("", erpHandler.GetAllDonors)
+			donors.GET("/search", erpHandler.SearchDonors)
 			donors.POST("", erpHandler.CreateDonor)
 			donors.GET("/:id", erpHandler.GetDonor)
 			donors.PUT("/:id", erpHandler.UpdateDonor)
@@ -168,6 +170,7 @@ func main() {
 		donations := v1.Group("/donations")
 		{
 			donations.GET("", erpHandler.GetAllDonations)
+			donations.GET("/search", erpHandler.SearchDonations)
 			donations.POST("", erpHandler.CreateDonation)
 			donations.PUT("/:id", erpHandler.UpdateDonation)
 			donations.DELETE("/:id", erpHandler.DeleteDonation)
@@ -177,6 +180,7 @@ func main() {
 		volunteers := v1.Group("/volunteers")
 		{
 			volunteers.GET("", erpHandler.GetAllVolunteers)
+			volunteers.GET("/search", erpHandler.SearchVolunteers)
 			volunteers.POST("", erpHandler.CreateVolunteer)
 			volunteers.PUT("/:id", erpHandler.UpdateVolunteer)
 			volunteers.DELETE("/:id", erpHandler.DeleteVolunteer)
@@ -186,6 +190,7 @@ func main() {
 		employees := v1.Group("/employees")
 		{
 			employees.GET("", erpHandler.GetAllEmployees)
+			employees.GET("/search", erpHandler.SearchEmployees)
 			employees.POST("", erpHandler.CreateEmployee)
 			employees.PUT("/:id", erpHandler.UpdateEmployee)
 			employees.DELETE("/:id", erpHandler.DeleteEmployee)
@@ -195,6 +200,7 @@ func main() {
 		locations := v1.Group("/locations")
 		{
 			locations.GET("", erpHandler.GetAllLocations)
+			locations.GET("/search", erpHandler.SearchLocations)
 			locations.POST("", erpHandler.CreateLocation)
 			locations.PUT("/:id", erpHandler.UpdateLocation)
 			locations.DELETE("/:id", erpHandler.DeleteLocation)
@@ -204,6 +210,7 @@ func main() {
 		funds := v1.Group("/funds")
 		{
 			funds.GET("", erpHandler.GetAllFunds)
+			funds.GET("/search", erpHandler.SearchFunds)
 			funds.POST("", erpHandler.CreateFund)
 			funds.GET("/:id", erpHandler.GetFund)
 			funds.PUT("/:id", erpHandler.UpdateFund)
@@ -214,6 +221,7 @@ func main() {
 		expenses := v1.Group("/expenses")
 		{
 			expenses.GET("", erpHandler.GetAllExpenses)
+			expenses.GET("/search", erpHandler.SearchExpenses)
 			expenses.POST("", erpHandler.CreateExpense)
 			expenses.PUT("/:id", erpHandler.UpdateExpense)
 			expenses.DELETE("/:id", erpHandler.DeleteExpense)
@@ -223,6 +231,7 @@ func main() {
 		transactions := v1.Group("/transactions")
 		{
 			transactions.GET("", erpHandler.GetAllTransactions)
+			transactions.GET("/search", erpHandler.SearchTransactions)
 			transactions.POST("", erpHandler.CreateTransaction)
 			transactions.PUT("/:id", erpHandler.UpdateTransaction)
 			transactions.DELETE("/:id", erpHandler.DeleteTransaction)
@@ -232,6 +241,7 @@ func main() {
 		purchases := v1.Group("/purchases")
 		{
 			purchases.GET("", erpHandler.GetAllPurchases)
+			purchases.GET("/search", erpHandler.SearchPurchases)
 			purchases.POST("", erpHandler.CreatePurchase)
 			purchases.PUT("/:id", erpHandler.UpdatePurchase)
 			purchases.DELETE("/:id", erpHandler.DeletePurchase)
@@ -241,6 +251,7 @@ func main() {
 		payrolls := v1.Group("/payrolls")
 		{
 			payrolls.GET("", erpHandler.GetAllPayrolls)
+			payrolls.GET("/search", erpHandler.SearchPayrolls)
 			payrolls.POST("", erpHandler.CreatePayroll)
 			payrolls.PUT("/:id", erpHandler.UpdatePayroll)
 			payrolls.DELETE("/:id", erpHandler.DeletePayroll)
@@ -250,6 +261,7 @@ func main() {
 		inventory := v1.Group("/inventory")
 		{
 			inventory.GET("", erpHandler.GetAllInventories)
+			inventory.GET("/search", erpHandler.SearchInventories)
 			inventory.POST("", erpHandler.CreateInventory)
 			inventory.PUT("/:id", erpHandler.UpdateInventory)
 			inventory.DELETE("/:id", erpHandler.DeleteInventory)
@@ -268,6 +280,7 @@ func main() {
 		gifts := v1.Group("/gifts")
 		{
 			gifts.GET("", erpHandler.GetAllGifts)
+			gifts.GET("/search", erpHandler.SearchGifts)
 			gifts.POST("", erpHandler.CreateGift)
 			gifts.PUT("/:id", erpHandler.UpdateGift)
 			gifts.DELETE("/:id", erpHandler.DeleteGift)
@@ -277,6 +290,7 @@ func main() {
 		inventoryTransactions := v1.Group("/inventory-transactions")
 		{
 			inventoryTransactions.GET("", erpHandler.GetAllInventoryTransactions)
+			inventoryTransactions.GET("/search", erpHandler.SearchInventoryTransactions)
 			inventoryTransactions.POST("", erpHandler.CreateInventoryTransaction)
 			inventoryTransactions.PUT("/:id", erpHandler.UpdateInventoryTransaction)
 			inventoryTransactions.DELETE("/:id", erpHandler.DeleteInventoryTransaction)
@@ -286,6 +300,7 @@ func main() {
 		deliveries := v1.Group("/deliveries")
 		{
 			deliveries.GET("", erpHandler.GetAllDeliveries)
+			deliveries.GET("/search", erpHandler.SearchDeliveries)
 			deliveries.POST("", erpHandler.CreateDelivery)
 			deliveries.PUT("/:id", erpHandler.UpdateDelivery)
 			deliveries.DELETE("/:id", erpHandler.DeleteDelivery)
@@ -296,6 +311,7 @@ func main() {
 		volunteerProjects := v1.Group("/volunteer-projects")
 		{
 			volunteerProjects.GET("", erpHandler.GetAllVolunteerProjects)
+			volunteerProjects.GET("/search", erpHandler.SearchVolunteerProjects)
 			volunteerProjects.POST("", erpHandler.CreateVolunteerProject)
 			volunteerProjects.PUT("/:id", erpHandler.UpdateVolunteerProject)
 			volunteerProjects.DELETE("/:id", erpHandler.DeleteVolunteerProject)
@@ -305,6 +321,7 @@ func main() {
 		employeeProjects := v1.Group("/employee-projects")
 		{
 			employeeProjects.GET("", erpHandler.GetAllEmployeeProjects)
+			employeeProjects.GET("/search", erpHandler.SearchEmployeeProjects)
 			employeeProjects.POST("", erpHandler.CreateEmployeeProject)
 			employeeProjects.PUT("/:id", erpHandler.UpdateEmployeeProject)
 			employeeProjects.DELETE("/:id", erpHandler.DeleteEmployeeProject)
@@ -314,6 +331,7 @@ func main() {
 		fundProjects := v1.Group("/fund-projects")
 		{
 			fundProjects.GET("", erpHandler.GetAllFundProjects)
+			fundProjects.GET("/search", erpHandler.SearchFundProjects)
 			fundProjects.POST("", erpHandler.CreateFundProject)
 			fundProjects.PUT("/:id", erpHandler.UpdateFundProject)
 			fundProjects.DELETE("/:id", erpHandler.DeleteFundProject)
@@ -323,6 +341,7 @@ func main() {
 		donationInventory := v1.Group("/donation-inventory")
 		{
 			donationInventory.GET("", erpHandler.GetAllDonationInventories)
+			donationInventory.GET("/search", erpHandler.SearchDonationInventories)
 			donationInventory.POST("", erpHandler.CreateDonationInventory)
 			donationInventory.PUT("/:id", erpHandler.UpdateDonationInventory)
 			donationInventory.DELETE("/:id", erpHandler.DeleteDonationInventory)
@@ -332,6 +351,7 @@ func main() {
 		schedules := v1.Group("/schedules")
 		{
 			schedules.GET("", erpHandler.GetAllSchedules)
+			schedules.GET("/search", erpHandler.SearchSchedules)
 			schedules.POST("", erpHandler.CreateSchedule)
 			schedules.PUT("/:id", erpHandler.UpdateSchedule)
 			schedules.DELETE("/:id", erpHandler.DeleteSchedule)
