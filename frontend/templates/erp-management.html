@@ -25,6 +25,12 @@
                 </button>
             </div>
             <nav class="nav-menu">
+                <!-- User Info -->
+                <div class="user-info" id="user-info">
+                    <p id="user-display">Loading...</p>
+                    <button class="btn btn-secondary btn-sm" id="btn-logout">Logout</button>
+                </div>
+
                 <!-- Core Management -->
                 <div class="nav-section">
                     <h3>Core Management</h3>
@@ -135,6 +141,54 @@
         <span id="toast-message"></span>
     </div>
 
+    <script>
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('user');
+            
+            if (!token) {
+                // No token, redirect to login
+                window.location.href = '/login';
+                return;
+            }
+            
+            // Display user info
+            if (userInfo) {
+                try {
+                    const user = JSON.parse(userInfo);
+                    const userDisplay = document.getElementById('user-display');
+                    if (userDisplay) {
+                        userDisplay.textContent = `${user.username} (${user.user_type})`;
+                    }
+                } catch (e) {
+                    console.error('Failed to parse user info:', e);
+                }
+            }
+            
+            // Logout handler
+            const logoutBtn = document.getElementById('btn-logout');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login';
+                });
+            }
+        });
+        
+        // Add token to all API requests
+        const originalFetch = window.fetch;
+        window.fetch = function() {
+            const token = localStorage.getItem('token');
+            if (token && arguments[0].startsWith('/api/')) {
+                arguments[1] = arguments[1] || {};
+                arguments[1].headers = arguments[1].headers || {};
+                arguments[1].headers['Authorization'] = `Bearer ${token}`;
+            }
+            return originalFetch.apply(this, arguments);
+        };
+    </script>
     <script src="/static/js/erp-management.js"></script>
 </body>
 </html>

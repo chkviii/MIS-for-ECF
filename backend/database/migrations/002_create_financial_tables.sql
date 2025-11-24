@@ -1,15 +1,19 @@
--- 财务相关表
+-- 财务管理表 - 交易、捐赠、基金、支出、采购、薪资
 
 -- 交易表
 CREATE TABLE IF NOT EXISTS transactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     transaction_id VARCHAR(50) UNIQUE NOT NULL,
+    transaction_record TEXT,
     type VARCHAR(20) NOT NULL,
     amount DECIMAL(12,2) NOT NULL,
+    from_currency VARCHAR(3) NOT NULL DEFAULT 'USD',
+    to_currency VARCHAR(3) NOT NULL DEFAULT 'USD',
     from_entity VARCHAR(200),
     to_entity VARCHAR(200),
     transaction_date DATE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 捐赠记录表
@@ -22,10 +26,12 @@ CREATE TABLE IF NOT EXISTS donations (
     category VARCHAR(20) NOT NULL,
     project_id INTEGER,
     donation_date DATE NOT NULL,
+    transaction_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (donor_id) REFERENCES donors(id),
-    FOREIGN KEY (project_id) REFERENCES projects(id)
+    FOREIGN KEY (project_id) REFERENCES projects(id),
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id)
 );
 
 -- 基金管理表
@@ -77,6 +83,7 @@ CREATE TABLE IF NOT EXISTS purchases (
     purchase_date DATE,
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (transaction_id) REFERENCES transactions(id)
 );
 
@@ -87,16 +94,21 @@ CREATE TABLE IF NOT EXISTS payrolls (
     employee_id INTEGER NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     pay_date DATE NOT NULL,
-    deductions DECIMAL(10,2) DEFAULT 0.00,
-    bonuses DECIMAL(10,2) DEFAULT 0.00,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (transaction_id) REFERENCES transactions(id),
     FOREIGN KEY (employee_id) REFERENCES employees(id)
 );
 
--- 创建索引
+-- 创建索引（优化查询性能）
 CREATE INDEX IF NOT EXISTS idx_donations_donor ON donations(donor_id);
+CREATE INDEX IF NOT EXISTS idx_donations_project ON donations(project_id);
 CREATE INDEX IF NOT EXISTS idx_donations_date ON donations(donation_date);
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(transaction_date);
+CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+CREATE INDEX IF NOT EXISTS idx_expenses_fund ON expenses(fund_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_project ON expenses(project_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(expense_date);
 CREATE INDEX IF NOT EXISTS idx_funds_status ON funds(status);
+CREATE INDEX IF NOT EXISTS idx_payrolls_employee ON payrolls(employee_id);
+CREATE INDEX IF NOT EXISTS idx_payrolls_date ON payrolls(pay_date);

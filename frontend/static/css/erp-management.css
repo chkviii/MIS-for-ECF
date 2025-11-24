@@ -438,7 +438,8 @@ body {
     padding: 16px 24px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transform: translateX(400px);
+    max-width: 400px;
+    transform: translateX(450px);
     transition: transform 0.3s;
     z-index: 2000;
 }

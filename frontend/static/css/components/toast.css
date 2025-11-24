@@ -19,6 +19,7 @@
 }
 
 .toast.show {
+    max-width: 400px;
     transform: translateX(0);
     opacity: 1;
     pointer-events: auto;

@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS volunteer_projects (
     contract_detail TEXT,
     status VARCHAR(20) DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (volunteer_id) REFERENCES volunteers(id),
-    FOREIGN KEY (project_id) REFERENCES projects(id),
-    
+    FOREIGN KEY (project_id) REFERENCES projects(id)
 );
 
 -- 员工-项目关联表
@@ -29,11 +29,10 @@ CREATE TABLE IF NOT EXISTS employee_projects (
     end_date DATE,
     work_unit VARCHAR(50),
     allocated_amount DECIMAL(10,2),
-    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(id),
-    FOREIGN KEY (project_id) REFERENCES projects(id),
-    
+    FOREIGN KEY (project_id) REFERENCES projects(id)
 );
 
 -- 资金-项目关联表
@@ -46,6 +45,7 @@ CREATE TABLE IF NOT EXISTS fund_projects (
     allocation_date DATE DEFAULT (DATE('now')),
     purpose TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (transaction_id) REFERENCES transactions(id),
     FOREIGN KEY (project_id) REFERENCES projects(id),
     FOREIGN KEY (fund_id) REFERENCES funds(id)
@@ -61,9 +61,23 @@ CREATE TABLE IF NOT EXISTS donation_inventory (
     quantity INTEGER DEFAULT 1,
     estimated_value DECIMAL(10,2),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (donor_id) REFERENCES donors(id),
     FOREIGN KEY (inventory_id) REFERENCES inventory(id),
     FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+
+-- delivery-inventory 关联表（配送实物）
+CREATE TABLE IF NOT EXISTS delivery_inventory (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    delivery_id INTEGER NOT NULL,
+    inventory_id INTEGER NOT NULL,
+    quantity INTEGER DEFAULT 1,
+    unit_cost DECIMAL(8,2),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (delivery_id) REFERENCES deliveries(id),
+    FOREIGN KEY (inventory_id) REFERENCES inventory(id)
 );
 
 -- 调度表
@@ -88,5 +102,11 @@ CREATE INDEX IF NOT EXISTS idx_volunteer_projects_volunteer ON volunteer_project
 CREATE INDEX IF NOT EXISTS idx_volunteer_projects_project ON volunteer_projects(project_id);
 CREATE INDEX IF NOT EXISTS idx_employee_projects_employee ON employee_projects(employee_id);
 CREATE INDEX IF NOT EXISTS idx_employee_projects_project ON employee_projects(project_id);
+CREATE INDEX IF NOT EXISTS idx_fund_projects_transaction ON fund_projects(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_fund_projects_project ON fund_projects(project_id);
+CREATE INDEX IF NOT EXISTS idx_fund_projects_fund ON fund_projects(fund_id);
+CREATE INDEX IF NOT EXISTS idx_donation_inventory_donor ON donation_inventory(donor_id);
+CREATE INDEX IF NOT EXISTS idx_donation_inventory_inventory ON donation_inventory(inventory_id);
+CREATE INDEX IF NOT EXISTS idx_donation_inventory_project ON donation_inventory(project_id);
 CREATE INDEX IF NOT EXISTS idx_schedules_person ON schedules(person_id, person_type);
 CREATE INDEX IF NOT EXISTS idx_schedules_date ON schedules(shift_date);

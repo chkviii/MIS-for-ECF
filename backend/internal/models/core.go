@@ -4,116 +4,141 @@ import (
 	"time"
 )
 
-// User 用户表
+// User 用户模型
 type User struct {
-	ID           uint      `gorm:"primaryKey" json:"id"`
-	Username     string    `gorm:"size:50;unique;not null" json:"username"`
-	PasswordHash string    `gorm:"size:255;not null" json:"-"`
-	Role         string    `gorm:"size:20;not null" json:"role"`
-	Email        string    `gorm:"size:255;unique" json:"email"`
-	FirstName    string    `gorm:"size:100" json:"first_name"`
-	LastName     string    `gorm:"size:100" json:"last_name"`
-	Status       string    `gorm:"size:20;default:active" json:"status"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID           uint       `json:"id" gorm:"primaryKey"`
+	Username     string     `json:"username" gorm:"unique;not null"`
+	PasswordHash string     `json:"-" gorm:"column:password_hash;not null"`
+	UserType     string     `json:"user_type" gorm:"column:user_type;not null"`
+	Status       string     `json:"status" gorm:"default:active"`
+	CreatedAt    time.Time  `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt    time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
+	LastLogin    *time.Time `json:"last_login,omitempty"`
 }
 
-// Donor 捐赠者表
-type Donor struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	DonorID   string    `gorm:"size:20;unique;not null" json:"donor_id"`
-	FirstName string    `gorm:"size:100;not null" json:"first_name"`
-	LastName  string    `gorm:"size:100;not null" json:"last_name"`
-	Email     string    `gorm:"size:255;unique" json:"email"`
-	Phone     string    `gorm:"size:20" json:"phone"`
-	DonorType string    `gorm:"size:20;default:individual" json:"donor_type"`
-	Status    string    `gorm:"size:20;default:active" json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-
-	// 关联
-	Donations []Donation `json:"donations,omitempty"`
-	Funds     []Fund     `json:"funds,omitempty"`
+// TableName 指定表名
+func (User) TableName() string {
+	return "users"
 }
 
-// Volunteer 志愿者表
-type Volunteer struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	VolunteerID string    `gorm:"size:20;unique;not null" json:"volunteer_id"`
-	FirstName   string    `gorm:"size:100;not null" json:"first_name"`
-	LastName    string    `gorm:"size:100;not null" json:"last_name"`
-	Email       string    `gorm:"size:255;unique" json:"email"`
-	Phone       string    `gorm:"size:20" json:"phone"`
-	Skills      string    `json:"skills"`
-	LocationID  *uint     `json:"location_id"`
-	Status      string    `gorm:"size:20;default:active" json:"status"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-
-	// 关联
-	Location *Location `json:"location,omitempty"`
-}
-
-// Employee 员工表
-type Employee struct {
-	ID         uint      `gorm:"primaryKey" json:"id"`
-	EmployeeID string    `gorm:"size:20;unique;not null" json:"employee_id"`
-	FirstName  string    `gorm:"size:100;not null" json:"first_name"`
-	LastName   string    `gorm:"size:100;not null" json:"last_name"`
-	Email      string    `gorm:"size:255;unique" json:"email"`
-	Phone      string    `gorm:"size:20" json:"phone"`
-	Position   string    `gorm:"size:100" json:"position"`
-	Department string    `gorm:"size:100" json:"department"`
-	Salary     float64   `gorm:"type:decimal(10,2)" json:"salary"`
-	LocationID *uint     `json:"location_id"`
-	Status     string    `gorm:"size:20;default:active" json:"status"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-
-	// 关联
-	Location *Location `json:"location,omitempty"`
-	Expenses []Expense `json:"expenses,omitempty"`
-	Payrolls []Payroll `json:"payrolls,omitempty"`
-}
-
-// Location 地点表
+// Location 地点模型
 type Location struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	LocationID  string    `gorm:"size:50;unique;not null" json:"location_id"`
-	Name        string    `gorm:"size:200;not null" json:"name"`
-	Type        string    `gorm:"size:50" json:"type"`
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	LocationID  string    `json:"location_id" gorm:"uniqueIndex;not null"`
+	Name        string    `json:"name" gorm:"not null"`
+	Type        string    `json:"type"`
 	Address     string    `json:"address"`
-	CountryCode string    `gorm:"size:3" json:"country_code"`
-	CreatedAt   time.Time `json:"created_at"`
-
-	// 关联
-	Projects   []Project   `json:"projects,omitempty"`
-	Volunteers []Volunteer `json:"volunteers,omitempty"`
-	Employees  []Employee  `json:"employees,omitempty"`
-	Inventory  []Inventory `json:"inventory,omitempty"`
-	Deliveries []Delivery  `json:"deliveries,omitempty"`
+	CountryCode string    `json:"country_code" gorm:"size:3"`
+	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
 
-// Project 项目表
+// TableName 指定表名
+func (Location) TableName() string {
+	return "locations"
+}
+
+// Project 项目模型
 type Project struct {
-	ID          uint       `gorm:"primaryKey" json:"id"`
-	ProjectID   string     `gorm:"size:50;unique;not null" json:"project_id"`
-	Name        string     `gorm:"size:200;not null" json:"name"`
+	ID          uint       `json:"id" gorm:"primaryKey"`
+	ProjectID   string     `json:"project_id" gorm:"uniqueIndex;not null"`
+	Name        string     `json:"name" gorm:"not null"`
 	Description string     `json:"description"`
-	ProjectType string     `gorm:"size:50" json:"project_type"`
-	Budget      float64    `gorm:"type:decimal(12,2)" json:"budget"`
-	ActualCost  float64    `gorm:"type:decimal(12,2);default:0" json:"actual_cost"`
+	ProjectType string     `json:"project_type"`
+	Budget      float64    `json:"budget"`
+	ActualCost  float64    `json:"actual_cost" gorm:"default:0"`
 	LocationID  *uint      `json:"location_id"`
 	StartDate   *time.Time `json:"start_date"`
 	EndDate     *time.Time `json:"end_date"`
-	Status      string     `gorm:"size:20;default:planning" json:"status"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	Status      string     `json:"status" gorm:"default:planning"`
+	CreatedAt   time.Time  `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 
-	// 关联
-	Location   *Location  `json:"location,omitempty"`
-	Funds      []Fund     `json:"funds,omitempty"`
-	Donations  []Donation `json:"donations,omitempty"`
-	Expenses   []Expense  `json:"expenses,omitempty"`
-	Deliveries []Delivery `json:"deliveries,omitempty"`
+	Location *Location `json:"location,omitempty" gorm:"foreignKey:LocationID"`
+}
+
+// TableName 指定表名
+func (Project) TableName() string {
+	return "projects"
+}
+
+// Donor 捐赠者模型
+type Donor struct {
+	ID             uint      `json:"id" gorm:"primaryKey"`
+	UserID         *uint     `json:"user_id" gorm:"uniqueIndex"`
+	DonorID        string    `json:"donor_id" gorm:"uniqueIndex;not null"`
+	FirstName      string    `json:"first_name" gorm:"not null"`
+	LastName       string    `json:"last_name" gorm:"not null"`
+	Email          string    `json:"email"`
+	Phone          string    `json:"phone"`
+	Address        string    `json:"address"`
+	DonorType      string    `json:"donor_type" gorm:"default:individual"`
+	TotalDonated   float64   `json:"total_donated" gorm:"default:0"`
+	EnrollmentDate time.Time `json:"enrollment_date" gorm:"default:CURRENT_DATE"`
+	Status         string    `json:"status" gorm:"default:active"`
+	Notes          string    `json:"notes"`
+	CreatedAt      time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt      time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+
+	User *User `json:"user,omitempty" gorm:"foreignKey:UserID"`
+}
+
+// TableName 指定表名
+func (Donor) TableName() string {
+	return "donors"
+}
+
+// Volunteer 志愿者模型
+type Volunteer struct {
+	ID               uint      `json:"id" gorm:"primaryKey"`
+	UserID           *uint     `json:"user_id" gorm:"uniqueIndex"`
+	VolunteerID      string    `json:"volunteer_id" gorm:"uniqueIndex;not null"`
+	FirstName        string    `json:"first_name" gorm:"not null"`
+	LastName         string    `json:"last_name" gorm:"not null"`
+	Email            string    `json:"email"`
+	Phone            string    `json:"phone"`
+	LocationID       *uint     `json:"location_id"`
+	Skills           string    `json:"skills"`
+	Availability     string    `json:"availability"`
+	HoursContributed float64   `json:"hours_contributed" gorm:"default:0"`
+	Status           string    `json:"status" gorm:"default:active"`
+	Notes            string    `json:"notes"`
+	CreatedAt        time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt        time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+
+	User     *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Location *Location `json:"location,omitempty" gorm:"foreignKey:LocationID"`
+}
+
+// TableName 指定表名
+func (Volunteer) TableName() string {
+	return "volunteers"
+}
+
+// Employee 员工模型
+type Employee struct {
+	ID         uint      `json:"id" gorm:"primaryKey"`
+	UserID     *uint     `json:"user_id" gorm:"uniqueIndex"`
+	EmployeeID string    `json:"employee_id" gorm:"uniqueIndex;not null"`
+	FirstName  string    `json:"first_name" gorm:"not null"`
+	LastName   string    `json:"last_name" gorm:"not null"`
+	Email      string    `json:"email"`
+	Phone      string    `json:"phone"`
+	Position   string    `json:"position"`
+	Department string    `json:"department"`
+	Salary     float64   `json:"salary"`
+	HireDate   time.Time `json:"hire_date" gorm:"default:CURRENT_DATE"`
+	LocationID *uint     `json:"location_id"`
+	Status     string    `json:"status" gorm:"default:active"`
+	Notes      string    `json:"notes"`
+	CreatedAt  time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt  time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+
+	User     *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Location *Location `json:"location,omitempty" gorm:"foreignKey:LocationID"`
+}
+
+// TableName 指定表名
+func (Employee) TableName() string {
+	return "employees"
 }

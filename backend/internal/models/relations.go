@@ -69,9 +69,24 @@ type DonationInventory struct {
 	CreatedAt      time.Time  `json:"created_at"`
 
 	// 关联
-	Donor     Donor      `json:"donor,omitempty"`
-	Inventory Inventory  `json:"inventory,omitempty"`
-	Project   *Project   `json:"project,omitempty"`
+	Donor     Donor     `json:"donor,omitempty"`
+	Inventory Inventory `json:"inventory,omitempty"`
+	Project   *Project  `json:"project,omitempty"`
+}
+
+// DeliveryInventory 用于跟踪捐赠物品的交付情况
+type DeliveryInventory struct {
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	DeliveryID  uint      `gorm:"not null" json:"delivery_id"`
+	InventoryID uint      `gorm:"not null" json:"inventory_id"`
+	Quantity    int       `gorm:"default:1" json:"quantity"`
+	UnitCost    float64   `gorm:"type:decimal(8,2)" json:"unit_cost"`
+	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+
+	// 关联
+	Delivery  Delivery  `json:"delivery,omitempty" gorm:"foreignKey:DeliveryID"`
+	Inventory Inventory `json:"inventory,omitempty" gorm:"foreignKey:InventoryID"`
 }
 
 // Schedule 调度表

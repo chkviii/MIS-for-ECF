@@ -1,6 +1,92 @@
 // ERP Management System JavaScript
 const API_BASE_URL = '/api/v1';
 
+// API Helper function - automatically add Authorization header
+async function apiRequest(url, options = {}) {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        window.location.href = '/login';
+        throw new Error('No authentication token found');
+    }
+    
+    // Set default headers
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers
+    };
+    
+    // Merge options
+    const requestOptions = {
+        ...options,
+        headers
+    };
+    
+    try {
+        const response = await fetch(url, requestOptions);
+        
+        // If unauthorized, redirect to login
+        if (response.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('profile');
+            window.location.href = '/login';
+            throw new Error('Authentication failed');
+        }
+        
+        return response;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Check if user is logged in
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (!token || !user) {
+        window.location.href = '/login';
+        return false;
+    }
+    return true;
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('profile');
+    window.location.href = '/login';
+}
+
+// Add logout button event on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication
+    checkAuth();
+    
+    // Add logout button to header if it exists
+    const header = document.querySelector('.header');
+    if (header) {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const profile = JSON.parse(localStorage.getItem('profile') || '{}');
+        
+        const userInfo = document.createElement('div');
+        userInfo.className = 'user-info';
+        userInfo.style.cssText = 'position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 15px;';
+        userInfo.innerHTML = `
+            <span style="color: #666;">Welcome, ${profile.first_name || user.username}</span>
+            <button onclick="logout()" class="btn btn-small btn-secondary">Logout</button>
+        `;
+        header.appendChild(userInfo);
+    }
+    
+    initNavigation();
+    initSidebarToggle();
+    loadEntity('projects');
+});
+
 // Entity Configuration
 const ENTITY_CONFIG = {
     'projects': {
@@ -163,9 +249,9 @@ const ENTITY_CONFIG = {
             { name: 'bonuses', label: 'Bonuses', type: 'number', showInTable: true }
         ]
     },
-    'inventory': {
+    'inventories': {
         title: 'Inventory Management',
-        endpoint: 'inventory',
+        endpoint: 'inventories',
         fields: [
             { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
             { name: 'inventory_id', label: 'Inventory ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
@@ -275,9 +361,9 @@ const ENTITY_CONFIG = {
             { name: 'purpose', label: 'Purpose', type: 'textarea', showInTable: false }
         ]
     },
-    'donation-inventory': {
+    'donation-inventories': {
         title: 'Donation Inventory (In-Kind)',
-        endpoint: 'donation-inventory',
+        endpoint: 'donation-inventories',
         fields: [
             { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
             { name: 'donor_id', label: 'Donor ID', type: 'number', required: true, showInTable: true },
@@ -313,11 +399,7 @@ let currentData = [];
 let editingItem = null;
 
 // Initialization
-document.addEventListener('DOMContentLoaded', function() {
-    initNavigation();
-    initSidebarToggle();
-    loadEntity('projects');
-});
+// (initial DOMContentLoaded handler already declared earlier; avoid duplicate initialization)
 
 // Navigation Initialization
 function initNavigation() {
@@ -495,9 +577,13 @@ function generateTable(config) {
 // Fetch Data
 async function fetchData() {
     try {
+        console.log("Fetching data for entity: ", currentEntity);
         const config = ENTITY_CONFIG[currentEntity];
-        const response = await fetch(`${API_BASE_URL}/${config.endpoint}`);
+        console.log("current config: ", config);
+        const response = await apiRequest(`${API_BASE_URL}/${config.endpoint}`);
+        console.log("current response: ", response);
         const result = await response.json();
+        console.log("Response Json: ", result);
         
         currentData = result.data || [];
         renderTable();
@@ -572,7 +658,7 @@ async function searchData() {
         }
         
         // Call search endpoint with query params
-        const response = await fetch(`${API_BASE_URL}/${config.endpoint}/search?${queryParams.toString()}`);
+        const response = await apiRequest(`${API_BASE_URL}/${config.endpoint}/search?${queryParams.toString()}`);
         const result = await response.json();
         
         currentData = result.data || [];
@@ -691,11 +777,8 @@ async function saveData() {
         
         const method = editingItem ? 'PUT' : 'POST';
         
-        const response = await fetch(url, {
+        const response = await apiRequest(url, {
             method: method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(data)
         });
         
@@ -755,7 +838,7 @@ async function deleteItem(id) {
     
     try {
         const config = ENTITY_CONFIG[currentEntity];
-        const response = await fetch(`${API_BASE_URL}/${config.endpoint}/${id}`, {
+        const response = await apiRequest(`${API_BASE_URL}/${config.endpoint}/${id}`, {
             method: 'DELETE'
         });
         

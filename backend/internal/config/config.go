@@ -13,7 +13,7 @@ type Config struct {
 	Static_Path string `mapstructure:"STATIC_PATH"`
 	Html_Path   string `mapstructure:"HTML_PATH"`
 	DB_Path     string `mapstructure:"DB_PATH"`
-	Ecrypt_Seed string `mapstructure:"ENCRYPT_SEED"`
+	Encrypt_Seed string `mapstructure:"ENCRYPT_SEED"`
 	//JWTSecret string `mapstructure:"JWT_SECRET"`
 }
 
