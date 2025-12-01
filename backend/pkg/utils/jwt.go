@@ -10,9 +10,10 @@ import (
 
 // Claims JWT声明结构
 type Claims struct {
-	UserID   int64  `json:"user_id"`
+	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
 	UserType string `json:"user_type"`
+	RoleID   uint   `json:"role_id"`
 	jwt.RegisteredClaims
 }
 
@@ -27,14 +28,15 @@ func init() {
 }
 
 // GenerateToken 生成JWT token
-func GenerateToken(userID int64, username, userType string) (string, error) {
+func GenerateToken(userID uint, username, userType string, roleID uint) (string, error) {
 	// 设置过期时间为24小时
 	expirationTime := time.Now().Add(24 * time.Hour)
-	
+
 	claims := &Claims{
 		UserID:   userID,
 		Username: username,
 		UserType: userType,
+		RoleID:   roleID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -53,7 +55,7 @@ func GenerateToken(userID int64, username, userType string) (string, error) {
 // ValidateToken 验证JWT token
 func ValidateToken(tokenString string) (*Claims, error) {
 	claims := &Claims{}
-	
+
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		// 验证签名方法
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -85,5 +87,5 @@ func RefreshToken(tokenString string) (string, error) {
 		return tokenString, nil
 	}
 
-	return GenerateToken(claims.UserID, claims.Username, claims.UserType)
+	return GenerateToken(claims.UserID, claims.Username, claims.UserType, claims.RoleID)
 }

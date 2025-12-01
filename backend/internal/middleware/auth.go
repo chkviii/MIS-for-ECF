@@ -18,7 +18,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"success": false,
-				"message": "未提供认证令牌",
+				"message": "No authorization header provided",
 			})
 			c.Abort()
 			return
@@ -29,7 +29,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		if !(len(parts) == 2 && parts[0] == "Bearer") {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"success": false,
-				"message": "认证令牌格式错误",
+				"message": "Invalid token format",
 			})
 			c.Abort()
 			return
@@ -40,7 +40,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"success": false,
-				"message": "认证令牌无效或已过期",
+				"message": "Invalid or expired authentication token",
 			})
 			c.Abort()
 			return
@@ -50,7 +50,23 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("user_id", claims.UserID)
 		c.Set("username", claims.Username)
 		c.Set("user_type", claims.UserType)
+		c.Set("role_id", claims.RoleID)
 
+		c.Next()
+	}
+}
+
+func AuthVarifyUserType(requiredType string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userType, exists := c.Get("user_type")
+		if !exists || userType != requiredType {
+			c.JSON(http.StatusForbidden, gin.H{
+				"success": false,
+				"message": fmt.Sprintf("Access denied: %s role required", requiredType),
+			})
+			c.Abort()
+			return
+		}
 		c.Next()
 	}
 }

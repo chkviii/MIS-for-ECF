@@ -1,0 +1,352 @@
+{
+"projects": {
+"title": "Project Management",
+"endpoint": "projects",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "project_id", "label": "Project ID", "type": "text", "readonly": true, "showInTable": true, "showInForm": "edit", "searchable": true },
+{ "name": "name", "label": "Project Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "description", "label": "Description", "type": "textarea", "showInTable": false, "searchable": true },
+{ "name": "project_type", "label": "Project Type", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "budget", "label": "Budget", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "actual_cost", "label": "Actual Cost", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "location_id", "label": "Location ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "status", "label": "Status", "type": "select", "options": ["planning", "active", "completed", "cancelled"], "showInTable": true, "searchable": true },
+{ "name": "start_date", "label": "Start Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "end_date", "label": "End Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"donors": {
+"title": "Donor Management",
+"endpoint": "donors",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "donor_id", "label": "Donor ID", "type": "text", "readonly": true, "showInTable": true, "showInForm": "edit", "searchable": true },
+{ "name": "user_id", "label": "User ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "first_name", "label": "First Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "last_name", "label": "Last Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "email", "label": "Email", "type": "email", "showInTable": true, "searchable": true },
+{ "name": "phone", "label": "Phone", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "donor_type", "label": "Type", "type": "select", "options": ["individual", "corporate", "foundation"], "showInTable": true, "searchable": true },
+{ "name": "status", "label": "Status", "type": "select", "options": ["active", "inactive"], "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"donations": {
+"title": "Donation Records",
+"endpoint": "donations",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "donation_id", "label": "Donation ID", "type": "text", "readonly": true, "showInTable": true, "showInForm": "edit", "searchable": true },
+{ "name": "donor_id", "label": "Donor ID", "type": "number", "required": true, "showInTable": true, "searchable": true },
+{ "name": "project_id", "label": "Project ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "amount", "label": "Amount", "type": "number", "required": true, "showInTable": true, "searchable": true },
+{ "name": "donation_type", "label": "Donation Type", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "category", "label": "Category", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "donation_date", "label": "Donation Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"volunteers": {
+"title": "Volunteer Management",
+"endpoint": "volunteers",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "volunteer_id", "label": "Volunteer ID", "type": "text", "readonly": true, "showInTable": true, "showInForm": "edit", "searchable": true },
+{ "name": "user_id", "label": "User ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "first_name", "label": "First Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "last_name", "label": "Last Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "email", "label": "Email", "type": "email", "showInTable": true, "searchable": true },
+{ "name": "phone", "label": "Phone", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "location_id", "label": "Location ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "skills", "label": "Skills", "type": "textarea", "showInTable": false, "searchable": true },
+{ "name": "status", "label": "Status", "type": "select", "options": ["active", "inactive"], "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"employees": {
+"title": "Employee Management",
+"endpoint": "employees",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "employee_id", "label": "Employee ID", "type": "text", "readonly": true, "showInTable": true, "showInForm": "edit", "searchable": true },
+{ "name": "user_id", "label": "User ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "first_name", "label": "First Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "last_name", "label": "Last Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "email", "label": "Email", "type": "email", "showInTable": true, "searchable": true },
+{ "name": "phone", "label": "Phone", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "position", "label": "Position", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "department", "label": "Department", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "salary", "label": "Salary", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "location_id", "label": "Location ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "status", "label": "Status", "type": "select", "options": ["active", "inactive"], "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"locations": {
+"title": "Location Management",
+"endpoint": "locations",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "location_id", "label": "Location ID", "type": "text", "readonly": true, "showInTable": true, "showInForm": "edit", "searchable": true },
+{ "name": "name", "label": "Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "type", "label": "Type", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "address", "label": "Address", "type": "textarea", "showInTable": true, "searchable": true },
+{ "name": "country_code", "label": "Country Code", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"funds": {
+"title": "Fund Management",
+"endpoint": "funds",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "fund_id", "label": "Fund ID", "type": "text", "readonly": true, "showInTable": true, "showInForm": "edit", "searchable": true },
+{ "name": "donor_id", "label": "Donor ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "project_id", "label": "Project ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "transaction_id", "label": "Transaction ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "name", "label": "Fund Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "fund_type", "label": "Type", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "total_amount", "label": "Total Amount", "type": "number", "required": true, "showInTable": true, "searchable": true },
+{ "name": "current_balance", "label": "Current Balance", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "status", "label": "Status", "type": "select", "options": ["active", "closed"], "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"expenses": {
+"title": "Expense Management",
+"endpoint": "expenses",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "expense_id", "label": "Expense ID", "type": "text", "readonly": true, "showInTable": true, "showInForm": "edit", "searchable": true },
+{ "name": "fund_id", "label": "Fund ID", "type": "number", "required": true, "showInTable": true, "searchable": true },
+{ "name": "project_id", "label": "Project ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "employee_id", "label": "Employee ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "transaction_id", "label": "Transaction ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "description", "label": "Description", "type": "textarea", "required": true, "showInTable": true, "searchable": true },
+{ "name": "amount", "label": "Amount", "type": "number", "required": true, "showInTable": true, "searchable": true },
+{ "name": "expense_date", "label": "Expense Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "approval_status", "label": "Approval Status", "type": "select", "options": ["pending", "approved", "rejected"], "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"transactions": {
+"title": "Transactions",
+"endpoint": "transactions",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "transaction_id", "label": "Transaction ID", "type": "text", "readonly": true, "showInTable": true, "searchable": true },
+{ "name": "type", "label": "Type", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "amount", "label": "Amount", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "from_currency", "label": "From Currency", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "to_currency", "label": "To Currency", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "from_entity", "label": "From Entity", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "to_entity", "label": "To Entity", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "transaction_date", "label": "Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"purchases": {
+"title": "Purchases",
+"endpoint": "purchases",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "purchase_id", "label": "Purchase ID", "type": "text", "readonly": true, "showInTable": true, "showInForm": "edit", "searchable": true },
+{ "name": "transaction_id", "label": "Transaction ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "total_spent", "label": "Total Spent", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "supplier_name", "label": "Supplier", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "purchase_date", "label": "Purchase Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "description", "label": "Description", "type": "textarea", "showInTable": false, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"payrolls": {
+"title": "Payrolls",
+"endpoint": "payrolls",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "transaction_id", "label": "Transaction ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "employee_id", "label": "Employee ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "amount", "label": "Amount", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "pay_date", "label": "Pay Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"inventory": {
+"title": "Inventory",
+"endpoint": "inventory",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "inventory_id", "label": "Inventory ID", "type": "text", "readonly": true, "showInTable": true, "showInForm": "edit", "searchable": true },
+{ "name": "name", "label": "Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "category", "label": "Category", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "purchase_id", "label": "Purchase ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "location_id", "label": "Location ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "current_stock", "label": "Stock", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "unit_cost", "label": "Unit Cost", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "status", "label": "Status", "type": "select", "options": ["available", "reserved", "depleted"], "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"gift-types": {
+"title": "Gift Types",
+"endpoint": "gift-types",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "name", "label": "Name", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "category", "label": "Category", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "unit_cost", "label": "Unit Cost", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "requires_inventory", "label": "Requires Inventory", "type": "checkbox", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"gifts": {
+"title": "Gifts",
+"endpoint": "gifts",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "gift_id", "label": "Gift ID", "type": "text", "readonly": true, "showInTable": true, "searchable": true },
+{ "name": "donation_id", "label": "Donation ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "delivery_id", "label": "Delivery ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "gift_type_id", "label": "Gift Type ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "total_value", "label": "Total Value", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"inventory-transactions": {
+"title": "Inventory Transactions",
+"endpoint": "inventory-transactions",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "to_inventory_id", "label": "To Inventory", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "from_inventory_id", "label": "From Inventory", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "transaction_type", "label": "Type", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "quantity_change", "label": "Quantity", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "transaction_date", "label": "Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"deliveries": {
+"title": "Deliveries",
+"endpoint": "deliveries",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "delivery_id", "label": "Delivery ID", "type": "text", "readonly": true, "showInTable": true, "searchable": true },
+{ "name": "quantity", "label": "Quantity", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "recipient_name", "label": "Recipient", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "recipient_contact", "label": "Contact", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "location_id", "label": "Location ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "address", "label": "Address", "type": "textarea", "showInTable": false, "searchable": true },
+{ "name": "delivery_date", "label": "Delivery Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "status", "label": "Status", "type": "select", "options": ["pending", "shipped", "delivered"], "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"volunteer-projects": {
+"title": "Volunteer-Project Links",
+"endpoint": "volunteer-projects",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "volunteer_id", "label": "Volunteer ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "project_id", "label": "Project ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "role", "label": "Role", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "contract_start", "label": "Start", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "contract_end", "label": "End", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "work_unit", "label": "Work Unit", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"employee-projects": {
+"title": "Employee-Project Links",
+"endpoint": "employee-projects",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "employee_id", "label": "Employee ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "project_id", "label": "Project ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "title", "label": "Title", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "start_date", "label": "Start Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "end_date", "label": "End Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "allocated_amount", "label": "Allocated", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"fund-projects": {
+"title": "Fund-Project Allocations",
+"endpoint": "fund-projects",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "transaction_id", "label": "Transaction ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "project_id", "label": "Project ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "fund_id", "label": "Fund ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "allocated_amount", "label": "Allocated", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "allocation_date", "label": "Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"donation-inventory": {
+"title": "Donation Inventory",
+"endpoint": "donation-inventory",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "donor_id", "label": "Donor ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "inventory_id", "label": "Inventory ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "donation_date", "label": "Donation Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "project_id", "label": "Project ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "quantity", "label": "Quantity", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "estimated_value", "label": "Estimated Value", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"delivery-inventory": {
+"title": "Delivery Inventory",
+"endpoint": "delivery-inventory",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "delivery_id", "label": "Delivery ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "inventory_id", "label": "Inventory ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "quantity", "label": "Quantity", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "unit_cost", "label": "Unit Cost", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+},
+"schedules": {
+"title": "Schedules",
+"endpoint": "schedules",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "schedule_id", "label": "Schedule ID", "type": "text", "readonly": true, "showInTable": true, "searchable": true },
+{ "name": "person_id", "label": "Person ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "person_type", "label": "Person Type", "type": "select", "options": ["volunteer", "employee"], "showInTable": true, "searchable": true },
+{ "name": "project_id", "label": "Project ID", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "shift_date", "label": "Shift Date", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "start_time", "label": "Start Time", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "end_time", "label": "End Time", "type": "text", "showInTable": true, "searchable": true },
+{ "name": "hours_worked", "label": "Hours", "type": "number", "showInTable": true, "searchable": true },
+{ "name": "status", "label": "Status", "type": "select", "options": ["scheduled", "completed", "cancelled"], "showInTable": true, "searchable": true },
+{ "name": "created_at", "label": "Created At", "type": "date", "showInTable": true },
+{ "name": "updated_at", "label": "Updated At", "type": "date", "showInTable": true }
+]
+}
+}

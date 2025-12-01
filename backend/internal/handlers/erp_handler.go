@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -109,6 +110,63 @@ func notImplementedFilter(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, gin.H{"error": "Filter not implemented"})
 }
 
+// parseFilterParams reads query string params `query`, `number_range`, `date_range`
+// and unmarshals them into appropriate Go maps.
+func parseFilterParams(c *gin.Context) (map[string]interface{}, map[string][]interface{}, map[string][]string, error) {
+	var q map[string]interface{}
+	var nr map[string][]interface{}
+	var dr map[string][]string
+
+	if s := c.Query("query"); s != "" {
+		if err := json.Unmarshal([]byte(s), &q); err != nil {
+			for k, v := range q {
+				q[k] = "%" + fmt.Sprint(v) + "%"
+			}
+			return nil, nil, nil, err
+		}
+	} else {
+		q = map[string]interface{}{}
+	}
+
+	if s := c.Query("number_range"); s != "" {
+		if err := json.Unmarshal([]byte(s), &nr); err != nil {
+			return nil, nil, nil, err
+		}
+	} else {
+		nr = map[string][]interface{}{}
+	}
+
+	if s := c.Query("date_range"); s != "" {
+		if err := json.Unmarshal([]byte(s), &dr); err != nil {
+			return nil, nil, nil, err
+		}
+	} else {
+		dr = map[string][]string{}
+	}
+
+	// Validate and normalize date_range entries to YYYY-MM-DD
+	const layout = "2006-01-02"
+	for key, pair := range dr {
+		if len(pair) == 0 {
+			continue
+		}
+		// normalize each element if present, validate format
+		for i := 0; i < len(pair) && i < 2; i++ {
+			if pair[i] == "" {
+				continue
+			}
+			t, err := time.Parse(layout, pair[i])
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("invalid date for %s: %s", key, pair[i])
+			}
+			pair[i] = t.Format(layout)
+		}
+		dr[key] = pair
+	}
+
+	return q, nr, dr, nil
+}
+
 // parseDateRange 简单解析 start_date 和 end_date（格式：YYYY-MM-DD），失败返回零值
 func parseDateRange(c *gin.Context) (time.Time, time.Time) {
 	var start, end time.Time
@@ -173,7 +231,19 @@ func (h *ERPHandler) UpdateProject(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterProjects(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterProjects(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.projectService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -233,7 +303,19 @@ func (h *ERPHandler) UpdateDonor(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterDonors(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterDonors(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.donorService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteDonor(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -293,7 +375,19 @@ func (h *ERPHandler) UpdateDonation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterDonations(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterDonations(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.donationService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteDonation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -353,7 +447,19 @@ func (h *ERPHandler) UpdateVolunteer(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterVolunteers(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterVolunteers(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.volunteerService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteVolunteer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -413,7 +519,19 @@ func (h *ERPHandler) UpdateEmployee(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterEmployees(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterEmployees(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.employeeService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteEmployee(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -473,7 +591,19 @@ func (h *ERPHandler) UpdateLocation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterLocations(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterLocations(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.locationService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteLocation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -533,7 +663,19 @@ func (h *ERPHandler) UpdateFund(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterFunds(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterFunds(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.fundService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteFund(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -593,7 +735,19 @@ func (h *ERPHandler) UpdateExpense(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterExpenses(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterExpenses(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.expenseService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteExpense(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -653,7 +807,19 @@ func (h *ERPHandler) UpdateTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterTransactions(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterTransactions(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.transactionService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteTransaction(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -713,7 +879,19 @@ func (h *ERPHandler) UpdatePurchase(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterPurchases(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterPurchases(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.purchaseService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeletePurchase(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -770,7 +948,19 @@ func (h *ERPHandler) UpdatePayroll(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterPayrolls(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterPayrolls(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.payrollService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeletePayroll(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -830,7 +1020,19 @@ func (h *ERPHandler) UpdateInventory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterInventories(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterInventories(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.inventoryService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteInventory(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -887,7 +1089,19 @@ func (h *ERPHandler) UpdateGiftType(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterGiftTypes(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterGiftTypes(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.giftTypeService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteGiftType(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -947,7 +1161,19 @@ func (h *ERPHandler) UpdateGift(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterGifts(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterGifts(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.giftService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteGift(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -1004,7 +1230,19 @@ func (h *ERPHandler) UpdateInventoryTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterInventoryTransactions(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterInventoryTransactions(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.inventoryTransactionService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteInventoryTransaction(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -1064,7 +1302,19 @@ func (h *ERPHandler) UpdateDelivery(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterDeliveries(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterDeliveries(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.deliveryService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteDelivery(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -1123,7 +1373,19 @@ func (h *ERPHandler) UpdateVolunteerProject(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterVolunteerProjects(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterVolunteerProjects(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.volunteerProjectService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteVolunteerProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -1179,7 +1441,19 @@ func (h *ERPHandler) UpdateEmployeeProject(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterEmployeeProjects(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterEmployeeProjects(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.employeeProjectService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteEmployeeProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -1235,7 +1509,19 @@ func (h *ERPHandler) UpdateFundProject(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterFundProjects(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterFundProjects(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.fundProjectService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteFundProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -1291,7 +1577,19 @@ func (h *ERPHandler) UpdateDonationInventory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterDonationInventories(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterDonationInventories(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.donationInventoryService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteDonationInventory(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -1347,7 +1645,19 @@ func (h *ERPHandler) UpdateDeliveryInventory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterDeliveryInventories(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterDeliveryInventories(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.deliveryInventoryService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteDeliveryInventory(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -1406,7 +1716,19 @@ func (h *ERPHandler) UpdateSchedule(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": m})
 }
 
-func (h *ERPHandler) FilterSchedules(c *gin.Context) { notImplementedFilter(c) }
+func (h *ERPHandler) FilterSchedules(c *gin.Context) {
+	query, numberRange, dateRange, err := parseFilterParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter parameters: " + err.Error()})
+		return
+	}
+	list, err := h.scheduleService.Filter(query, numberRange, dateRange)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
 
 func (h *ERPHandler) DeleteSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)

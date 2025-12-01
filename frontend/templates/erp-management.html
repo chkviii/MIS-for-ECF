@@ -18,18 +18,14 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <h2>ERP System</h2>
+                    <h2>DBMS</h2>
                 </div>
                 <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
                     <span class="toggle-icon">«</span>
                 </button>
             </div>
             <nav class="nav-menu">
-                <!-- User Info -->
-                <div class="user-info" id="user-info">
-                    <p id="user-display">Loading...</p>
-                    <button class="btn btn-secondary btn-sm" id="btn-logout">Logout</button>
-                </div>
+                
 
                 <!-- Core Management -->
                 <div class="nav-section">
@@ -69,20 +65,29 @@
                     <a href="#" class="nav-item" data-entity="employee-projects">Employee-Projects</a>
                     <a href="#" class="nav-item" data-entity="fund-projects">Fund-Projects</a>
                     <a href="#" class="nav-item" data-entity="donation-inventory">Donation Inventory</a>
+                    <a href="#" class="nav-item" data-entity="delivery-inventory">Delivery Inventory</a>
                     <a href="#" class="nav-item" data-entity="schedules">Schedules</a>
                 </div>
             </nav>
         </aside>
 
+        <!-- Header -->
+        <header class="header">
+            <h2 id="page-title">Project Management</h2>
+            <!-- User Info -->
+            <!-- <div class="user-info" id="user-info">
+                <p id="user-display">Loading...</p>
+                <button class="btn btn-secondary btn-sm" id="btn-logout">Logout</button>
+            </div> -->
+        </header>
+
+
+
         <!-- Main Content Area -->
         <main class="main-content" id="main-content">
             <!-- Top Toolbar -->
-            <div class="toolbar">
-                <h1 id="page-title">Project Management</h1>
-                <button class="btn btn-primary" id="btn-add">
-                    <span>+ Add New</span>
-                </button>
-            </div>
+
+
 
             <!-- Search Filter Section -->
             <div class="filter-section">
@@ -91,6 +96,12 @@
                 </div>
                 <button class="btn btn-secondary" id="btn-search">Search</button>
                 <button class="btn btn-secondary" id="btn-reset">Reset</button>
+            </div>
+
+            <div class="toolbar">
+                <button class="btn btn-primary" id="btn-add">
+                    <span>+ Add New</span>
+                </button>
             </div>
 
             <!-- Data Table -->

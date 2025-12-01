@@ -167,6 +167,19 @@ func main() {
 			})
 		})
 
+		// Donor/Volunteer/Employee portals (simple pages)
+		public.GET("/donor", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "donor.html", gin.H{"title": "Donor Portal"})
+		})
+
+		public.GET("/volunteer", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "volunteer.html", gin.H{"title": "Volunteer Portal"})
+		})
+
+		public.GET("/employee", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "employee-dashboard.html", gin.H{"title": "Employee Portal"})
+		})
+
 		// 兼容旧路径
 		public.GET("/erp", func(c *gin.Context) {
 			c.Redirect(http.StatusMovedPermanently, "/erp-management")
@@ -273,11 +286,11 @@ func main() {
 		api.DELETE("/payrolls/:id", erpHandler.DeletePayroll)
 
 		// 库存管理
-		api.POST("/inventories", erpHandler.CreateInventory)
-		api.GET("/inventories", erpHandler.GetAllInventories)
-		api.GET("/inventories/search", erpHandler.FilterInventories)
-		api.PUT("/inventories/:id", erpHandler.UpdateInventory)
-		api.DELETE("/inventories/:id", erpHandler.DeleteInventory)
+		api.POST("/inventory", erpHandler.CreateInventory)
+		api.GET("/inventory", erpHandler.GetAllInventories)
+		api.GET("/inventory/search", erpHandler.FilterInventories)
+		api.PUT("/inventory/:id", erpHandler.UpdateInventory)
+		api.DELETE("/inventory/:id", erpHandler.DeleteInventory)
 
 		// 礼品类型管理
 		api.POST("/gift-types", erpHandler.CreateGiftType)
@@ -329,18 +342,18 @@ func main() {
 		api.DELETE("/fund-projects/:id", erpHandler.DeleteFundProject)
 
 		// 捐赠-库存关联
-		api.POST("/donation-inventories", erpHandler.CreateDonationInventory)
-		api.GET("/donation-inventories", erpHandler.GetAllDonationInventories)
-		api.GET("/donation-inventories/search", erpHandler.FilterDonationInventories)
-		api.PUT("/donation-inventories/:id", erpHandler.UpdateDonationInventory)
-		api.DELETE("/donation-inventories/:id", erpHandler.DeleteDonationInventory)
+		api.POST("/donation-inventory", erpHandler.CreateDonationInventory)
+		api.GET("/donation-inventory", erpHandler.GetAllDonationInventories)
+		api.GET("/donation-inventory/search", erpHandler.FilterDonationInventories)
+		api.PUT("/donation-inventory/:id", erpHandler.UpdateDonationInventory)
+		api.DELETE("/donation-inventory/:id", erpHandler.DeleteDonationInventory)
 
 		// 交付-库存关联
-		api.POST("/delivery-inventories", erpHandler.CreateDeliveryInventory)
-		api.GET("/delivery-inventories", erpHandler.GetAllDeliveryInventories)
-		api.GET("/delivery-inventories/search", erpHandler.FilterDeliveryInventories)
-		api.PUT("/delivery-inventories/:id", erpHandler.UpdateDeliveryInventory)
-		api.DELETE("/delivery-inventories/:id", erpHandler.DeleteDeliveryInventory)
+		api.POST("/delivery-inventory", erpHandler.CreateDeliveryInventory)
+		api.GET("/delivery-inventory", erpHandler.GetAllDeliveryInventories)
+		api.GET("/delivery-inventory/search", erpHandler.FilterDeliveryInventories)
+		api.PUT("/delivery-inventory/:id", erpHandler.UpdateDeliveryInventory)
+		api.DELETE("/delivery-inventory/:id", erpHandler.DeleteDeliveryInventory)
 
 		// 日程管理
 		api.POST("/schedules", erpHandler.CreateSchedule)

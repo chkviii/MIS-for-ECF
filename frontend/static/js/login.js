@@ -28,17 +28,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem('user', JSON.stringify({
                     username: username,
                     user_type: data.data.user_type,
-                    user_details: data.data.user_details
+                    user_id: data.data.user_id
                 }));
 
                 messageDiv.textContent = 'Login successful! Redirecting...';
                 messageDiv.className = 'message success';
                 messageDiv.style.display = 'block';
 
-                // Redirect to ERP management page
+                // Redirect based on user type
                 setTimeout(() => {
-                    window.location.href = '/erp-management';
-                }, 1000);
+                    const ut = data.data.user_type || '';
+                    if (ut === 'donor') {
+                        window.location.href = '/donor';
+                    } else if (ut === 'volunteer') {
+                        window.location.href = '/volunteer';
+                    } else if (ut === 'employee') {
+                        window.location.href = '/employee';
+                    } else {
+                        window.location.href = '/erp-management';
+                    }
+                }, 800);
             } else {
                 messageDiv.textContent = data.message || 'Login failed';
                 messageDiv.className = 'message error';

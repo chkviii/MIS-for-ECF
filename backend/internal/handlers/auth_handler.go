@@ -4,8 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"erp-backend/internal/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 // AuthHandler 认证处理器
@@ -26,7 +27,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "请求参数错误: " + err.Error(),
+			"message": "Request parameter error: " + err.Error(),
 		})
 		return
 	}
@@ -41,10 +42,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "注册成功",
+		"message": "Registration successful",
 		"data":    resp,
 	})
 	log.Println("User registered successfully:", c)
@@ -57,7 +57,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "请求参数错误: " + err.Error(),
+			"message": "Request parameter error: " + err.Error(),
 		})
 		return
 	}
@@ -73,7 +73,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "登录成功",
+		"message": "Login successful",
 		"data":    resp,
 	})
 }
@@ -81,14 +81,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // ShowLoginPage 显示登录页面
 func (h *AuthHandler) ShowLoginPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.html", gin.H{
-		"title": "用户登录",
+		"title": "User Login",
 	})
 }
 
 // ShowRegisterPage 显示注册页面
 func (h *AuthHandler) ShowRegisterPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "register.html", gin.H{
-		"title": "用户注册",
+		"title": "User Registration",
 	})
 }
 
@@ -96,6 +96,6 @@ func (h *AuthHandler) ShowRegisterPage(c *gin.Context) {
 func (h *AuthHandler) Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "登出成功",
+		"message": "Logout successful",
 	})
 }

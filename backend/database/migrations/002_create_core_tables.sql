@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS projects (
     project_id VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(200) NOT NULL,
     description TEXT,
-    project_type VARCHAR(50),
+    project_type VARCHAR(200),
     budget DECIMAL(12,2),
     actual_cost DECIMAL(12,2) DEFAULT 0,
     location_id INTEGER,

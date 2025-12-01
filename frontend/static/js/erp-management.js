@@ -62,16 +62,19 @@ function logout() {
 }
 
 // Add logout button event on page load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Check authentication
     checkAuth();
-    
+
+    // Ensure entity config is loaded before initializing UI that depends on it
+    await ensureEntityConfig();
+
     // Add logout button to header if it exists
     const header = document.querySelector('.header');
     if (header) {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const profile = JSON.parse(localStorage.getItem('profile') || '{}');
-        
+
         const userInfo = document.createElement('div');
         userInfo.className = 'user-info';
         userInfo.style.cssText = 'position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 15px;';
@@ -81,322 +84,45 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         header.appendChild(userInfo);
     }
-    
+
     initNavigation();
     initSidebarToggle();
     loadEntity('projects');
 });
 
-// Entity Configuration
-const ENTITY_CONFIG = {
-    'projects': {
-        title: 'Project Management',
-        endpoint: 'projects',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'project_id', label: 'Project ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'name', label: 'Project Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'description', label: 'Description', type: 'textarea', showInTable: false },
-            { name: 'project_type', label: 'Project Type', type: 'text', showInTable: true, searchable: true },
-            { name: 'budget', label: 'Budget', type: 'number', showInTable: true },
-            { name: 'actual_cost', label: 'Actual Cost', type: 'number', showInTable: true },
-            { name: 'location_id', label: 'Location ID', type: 'number', showInTable: true },
-            { name: 'status', label: 'Status', type: 'select', options: ['planning', 'active', 'completed', 'cancelled'], showInTable: true, searchable: true },
-            { name: 'start_date', label: 'Start Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'end_date', label: 'End Date', type: 'date', showInTable: true }
-        ]
-    },
-    'donors': {
-        title: 'Donor Management',
-        endpoint: 'donors',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'donor_id', label: 'Donor ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'first_name', label: 'First Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'last_name', label: 'Last Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'email', label: 'Email', type: 'email', showInTable: true, searchable: true },
-            { name: 'phone', label: 'Phone', type: 'text', showInTable: true, searchable: true },
-            { name: 'donor_type', label: 'Type', type: 'select', options: ['individual', 'corporate', 'foundation'], showInTable: true, searchable: true },
-            { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'], showInTable: true }
-        ]
-    },
-    'donations': {
-        title: 'Donation Records',
-        endpoint: 'donations',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'donation_id', label: 'Donation ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'donor_id', label: 'Donor ID', type: 'number', required: true, showInTable: true },
-            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
-            { name: 'amount', label: 'Amount', type: 'number', required: true, showInTable: true },
-            { name: 'donation_type', label: 'Donation Type', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'category', label: 'Category', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'donation_date', label: 'Donation Date', type: 'date', showInTable: true, searchable: true, dateRange: true }
-        ]
-    },
-    'volunteers': {
-        title: 'Volunteer Management',
-        endpoint: 'volunteers',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'volunteer_id', label: 'Volunteer ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'first_name', label: 'First Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'last_name', label: 'Last Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'email', label: 'Email', type: 'email', showInTable: true, searchable: true },
-            { name: 'phone', label: 'Phone', type: 'text', showInTable: true },
-            { name: 'location_id', label: 'Location ID', type: 'number', showInTable: true },
-            { name: 'skills', label: 'Skills', type: 'textarea', showInTable: false },
-            { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'], showInTable: true }
-        ]
-    },
-    'employees': {
-        title: 'Employee Management',
-        endpoint: 'employees',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'employee_id', label: 'Employee ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'first_name', label: 'First Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'last_name', label: 'Last Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'email', label: 'Email', type: 'email', showInTable: true, searchable: true },
-            { name: 'phone', label: 'Phone', type: 'text', showInTable: true },
-            { name: 'position', label: 'Position', type: 'text', showInTable: true, searchable: true },
-            { name: 'department', label: 'Department', type: 'text', showInTable: true, searchable: true },
-            { name: 'salary', label: 'Salary', type: 'number', showInTable: true },
-            { name: 'location_id', label: 'Location ID', type: 'number', showInTable: true },
-            { name: 'status', label: 'Status', type: 'select', options: ['active', 'inactive'], showInTable: true }
-        ]
-    },
-    'locations': {
-        title: 'Location Management',
-        endpoint: 'locations',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'location_id', label: 'Location ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'name', label: 'Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'type', label: 'Type', type: 'text', showInTable: true, searchable: true },
-            { name: 'address', label: 'Address', type: 'textarea', showInTable: true },
-            { name: 'country_code', label: 'Country Code', type: 'text', showInTable: true }
-        ]
-    },
-    'funds': {
-        title: 'Fund Management',
-        endpoint: 'funds',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'fund_id', label: 'Fund ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'donor_id', label: 'Donor ID', type: 'number', showInTable: true },
-            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
-            { name: 'transaction_id', label: 'Transaction ID', type: 'number', showInTable: true },
-            { name: 'name', label: 'Fund Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'fund_type', label: 'Type', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'total_amount', label: 'Total Amount', type: 'number', required: true, showInTable: true },
-            { name: 'current_balance', label: 'Current Balance', type: 'number', showInTable: true },
-            { name: 'status', label: 'Status', type: 'select', options: ['active', 'closed'], showInTable: true }
-        ]
-    },
-    'expenses': {
-        title: 'Expense Management',
-        endpoint: 'expenses',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'expense_id', label: 'Expense ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'fund_id', label: 'Fund ID', type: 'number', required: true, showInTable: true },
-            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
-            { name: 'employee_id', label: 'Employee ID', type: 'number', showInTable: true },
-            { name: 'transaction_id', label: 'Transaction ID', type: 'number', showInTable: true },
-            { name: 'description', label: 'Description', type: 'textarea', required: true, showInTable: true },
-            { name: 'amount', label: 'Amount', type: 'number', required: true, showInTable: true },
-            { name: 'expense_date', label: 'Expense Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'approval_status', label: 'Approval Status', type: 'select', options: ['pending', 'approved', 'rejected'], showInTable: true }
-        ]
-    },
-    'transactions': {
-        title: 'Transaction Records',
-        endpoint: 'transactions',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'transaction_id', label: 'Transaction ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'type', label: 'Type', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'amount', label: 'Amount', type: 'number', required: true, showInTable: true },
-            { name: 'from_entity', label: 'From', type: 'text', showInTable: true },
-            { name: 'to_entity', label: 'To', type: 'text', showInTable: true },
-            { name: 'transaction_date', label: 'Transaction Date', type: 'date', showInTable: true, searchable: true, dateRange: true }
-        ]
-    },
-    'purchases': {
-        title: 'Purchase Management',
-        endpoint: 'purchases',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'purchase_id', label: 'Purchase ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'transaction_id', label: 'Transaction ID', type: 'number', showInTable: true },
-            { name: 'total_spent', label: 'Total Amount', type: 'number', required: true, showInTable: true },
-            { name: 'supplier_name', label: 'Supplier', type: 'text', showInTable: true, searchable: true },
-            { name: 'purchase_date', label: 'Purchase Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'description', label: 'Description', type: 'textarea', showInTable: false }
-        ]
-    },
-    'payrolls': {
-        title: 'Payroll Management',
-        endpoint: 'payrolls',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'transaction_id', label: 'Transaction ID', type: 'number', required: true, showInTable: true },
-            { name: 'employee_id', label: 'Employee ID', type: 'number', required: true, showInTable: true },
-            { name: 'amount', label: 'Amount', type: 'number', required: true, showInTable: true },
-            { name: 'pay_date', label: 'Pay Date', type: 'date', required: true, showInTable: true, searchable: true, dateRange: true },
-            { name: 'deductions', label: 'Deductions', type: 'number', showInTable: true },
-            { name: 'bonuses', label: 'Bonuses', type: 'number', showInTable: true }
-        ]
-    },
-    'inventories': {
-        title: 'Inventory Management',
-        endpoint: 'inventories',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'inventory_id', label: 'Inventory ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'name', label: 'Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'category', label: 'Category', type: 'text', showInTable: true, searchable: true },
-            { name: 'purchase_id', label: 'Purchase ID', type: 'number', showInTable: true },
-            { name: 'location_id', label: 'Location ID', type: 'number', showInTable: true },
-            { name: 'current_stock', label: 'Current Stock', type: 'number', showInTable: true },
-            { name: 'unit_cost', label: 'Unit Cost', type: 'number', showInTable: true },
-            { name: 'status', label: 'Status', type: 'select', options: ['available', 'out_of_stock', 'discontinued'], showInTable: true }
-        ]
-    },
-    'gift-types': {
-        title: 'Gift Types',
-        endpoint: 'gift-types',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'name', label: 'Name', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'category', label: 'Category', type: 'text', showInTable: true },
-            { name: 'unit_cost', label: 'Unit Cost', type: 'number', showInTable: true },
-            { name: 'requires_inventory', label: 'Requires Inventory', type: 'checkbox', showInTable: true }
-        ]
-    },
-    'gifts': {
-        title: 'Gift Management',
-        endpoint: 'gifts',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'gift_id', label: 'Gift ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'donation_id', label: 'Donation ID', type: 'number', showInTable: true },
-            { name: 'delivery_id', label: 'Delivery ID', type: 'number', showInTable: true },
-            { name: 'gift_type_id', label: 'Gift Type ID', type: 'number', required: true, showInTable: true },
-            { name: 'quantity', label: 'Quantity', type: 'number', showInTable: true },
-            { name: 'total_value', label: 'Total Value', type: 'number', showInTable: true },
-            { name: 'distribution_status', label: 'Distribution Status', type: 'select', options: ['pending', 'shipped', 'delivered'], showInTable: true }
-        ]
-    },
-    'inventory-transactions': {
-        title: 'Inventory Transactions',
-        endpoint: 'inventory-transactions',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'transaction_id', label: 'Transaction ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'inventory_id', label: 'Inventory ID', type: 'number', required: true, showInTable: true },
-            { name: 'transaction_type', label: 'Transaction Type', type: 'text', required: true, showInTable: true, searchable: true },
-            { name: 'quantity_change', label: 'Quantity Change', type: 'number', required: true, showInTable: true },
-            { name: 'transaction_date', label: 'Transaction Date', type: 'date', required: true, showInTable: true, searchable: true, dateRange: true }
-        ]
-    },
-    'deliveries': {
-        title: 'Delivery Management',
-        endpoint: 'deliveries',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'delivery_id', label: 'Delivery ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'inventory_id', label: 'Inventory ID', type: 'number', required: true, showInTable: true },
-            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
-            { name: 'location_id', label: 'Location ID', type: 'number', showInTable: true },
-            { name: 'quantity', label: 'Quantity', type: 'number', required: true, showInTable: true },
-            { name: 'recipient_name', label: 'Recipient', type: 'text', showInTable: true, searchable: true },
-            { name: 'delivery_date', label: 'Delivery Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'status', label: 'Status', type: 'select', options: ['pending', 'in_transit', 'delivered'], showInTable: true }
-        ]
-    },
-    'volunteer-projects': {
-        title: 'Volunteer-Project Assignments',
-        endpoint: 'volunteer-projects',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'volunteer_id', label: 'Volunteer ID', type: 'number', required: true, showInTable: true },
-            { name: 'project_id', label: 'Project ID', type: 'number', required: true, showInTable: true },
-            { name: 'role', label: 'Role', type: 'text', showInTable: true, searchable: true },
-            { name: 'contract_start', label: 'Contract Start', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'contract_end', label: 'Contract End', type: 'date', showInTable: true },
-            { name: 'work_unit', label: 'Work Unit', type: 'text', showInTable: true },
-            { name: 'total_amount', label: 'Total Amount', type: 'number', showInTable: true },
-            { name: 'contract_date', label: 'Contract Date', type: 'date', showInTable: true },
-            { name: 'contract_detail', label: 'Contract Detail', type: 'textarea', showInTable: false },
-            { name: 'status', label: 'Status', type: 'select', options: ['active', 'completed', 'cancelled'], showInTable: true, searchable: true }
-        ]
-    },
-    'employee-projects': {
-        title: 'Employee-Project Assignments',
-        endpoint: 'employee-projects',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'employee_id', label: 'Employee ID', type: 'number', required: true, showInTable: true },
-            { name: 'project_id', label: 'Project ID', type: 'number', required: true, showInTable: true },
-            { name: 'title', label: 'Title', type: 'text', showInTable: true, searchable: true },
-            { name: 'start_date', label: 'Start Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'end_date', label: 'End Date', type: 'date', showInTable: true },
-            { name: 'work_unit', label: 'Work Unit', type: 'text', showInTable: true },
-            { name: 'allocated_amount', label: 'Allocated Amount', type: 'number', showInTable: true },
-            { name: 'last_updated', label: 'Last Updated', type: 'datetime', readonly: true, showInTable: true, showInForm: 'edit' }
-        ]
-    },
-    'fund-projects': {
-        title: 'Fund-Project Allocations',
-        endpoint: 'fund-projects',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'transaction_id', label: 'Transaction ID', type: 'number', required: true, showInTable: true },
-            { name: 'project_id', label: 'Project ID', type: 'number', required: true, showInTable: true },
-            { name: 'fund_id', label: 'Fund ID', type: 'number', required: true, showInTable: true },
-            { name: 'allocated_amount', label: 'Allocated Amount', type: 'number', required: true, showInTable: true },
-            { name: 'allocation_date', label: 'Allocation Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'purpose', label: 'Purpose', type: 'textarea', showInTable: false }
-        ]
-    },
-    'donation-inventories': {
-        title: 'Donation Inventory (In-Kind)',
-        endpoint: 'donation-inventories',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'donor_id', label: 'Donor ID', type: 'number', required: true, showInTable: true },
-            { name: 'inventory_id', label: 'Inventory ID', type: 'number', required: true, showInTable: true },
-            { name: 'donation_date', label: 'Donation Date', type: 'date', showInTable: true, searchable: true, dateRange: true },
-            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
-            { name: 'quantity', label: 'Quantity', type: 'number', showInTable: true },
-            { name: 'estimated_value', label: 'Estimated Value', type: 'number', showInTable: true }
-        ]
-    },
-    'schedules': {
-        title: 'Schedule Management',
-        endpoint: 'schedules',
-        fields: [
-            { name: 'id', label: 'ID', type: 'number', readonly: true, showInTable: true, showInForm: false },
-            { name: 'schedule_id', label: 'Schedule ID', type: 'text', readonly: true, showInTable: true, showInForm: 'edit' },
-            { name: 'person_id', label: 'Person ID', type: 'number', required: true, showInTable: true },
-            { name: 'person_type', label: 'Person Type', type: 'select', options: ['volunteer', 'employee'], required: true, showInTable: true, searchable: true },
-            { name: 'project_id', label: 'Project ID', type: 'number', showInTable: true },
-            { name: 'shift_date', label: 'Shift Date', type: 'date', required: true, showInTable: true, searchable: true, dateRange: true },
-            { name: 'start_time', label: 'Start Time', type: 'time', required: true, showInTable: true },
-            { name: 'end_time', label: 'End Time', type: 'time', required: true, showInTable: true },
-            { name: 'hours_worked', label: 'Hours Worked', type: 'number', showInTable: true },
-            { name: 'status', label: 'Status', type: 'select', options: ['scheduled', 'completed', 'cancelled'], showInTable: true, searchable: true },
-            { name: 'notes', label: 'Notes', type: 'textarea', showInTable: false }
-        ]
+// Lazy-load entity config from JSON when needed (no global/window binding)
+let ENTITY_CONFIG = null;
+
+async function ensureEntityConfig() {
+    if (ENTITY_CONFIG) return;
+    try {
+        const resp = await fetch('/static/js/entity-config.json', { cache: 'no-store' });
+        if (!resp.ok) throw new Error('Failed to fetch entity-config.json: ' + resp.status);
+        ENTITY_CONFIG = await resp.json();
+    } catch (err) {
+        console.error('Unable to load entity configuration:', err);
+        // Provide empty fallback to avoid runtime exceptions — UI will show errors when config missing
+        ENTITY_CONFIG = {};
     }
-};
+}
 
 // Global State
 let currentEntity = 'projects';
 let currentData = [];
 let editingItem = null;
+// Currently-loaded entity config (defensive accessor stores last loaded config)
+let currentConfig = null;
+
+// Defensive accessor: ensure config JSON is loaded and return a safe config object
+async function getEntityConfig(entity) {
+    if (!ENTITY_CONFIG) await ensureEntityConfig();
+    const cfg = ENTITY_CONFIG && ENTITY_CONFIG[entity];
+    if (!cfg) {
+        console.warn(`Entity config for "${entity}" not found, using fallback.`);
+        return { title: entity, endpoint: entity, fields: [] };
+    }
+    return cfg;
+}
 
 // Initialization
 // (initial DOMContentLoaded handler already declared earlier; avoid duplicate initialization)
@@ -428,7 +154,6 @@ function initNavigation() {
 // Sidebar Toggle Initialization
 function initSidebarToggle() {
     const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
     const toggleBtn = document.getElementById('sidebar-toggle');
     
     // Load saved state from localStorage
@@ -469,8 +194,10 @@ function initSidebarToggle() {
 function updateMainContentMargin() {
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('main-content');
+    const header = document.querySelector('.header');
     const sidebarWidth = sidebar.offsetWidth;
     mainContent.style.marginLeft = `${sidebarWidth}px`;
+    header.style.marginLeft = `${sidebarWidth}px`;
 }
 
 // Apply Sidebar State
@@ -496,16 +223,16 @@ function applySidebarState(state) {
 // Load Entity Data
 async function loadEntity(entity) {
     currentEntity = entity;
-    const config = ENTITY_CONFIG[entity];
-    
-    document.getElementById('page-title').textContent = config.title;
-    
+    currentConfig = await getEntityConfig(entity);
+
+    document.getElementById('page-title').textContent = currentConfig.title || entity;
+
     // Generate Search Controls
-    generateSearchControls(config);
-    
+    generateSearchControls(currentConfig);
+
     // Generate Table
-    generateTable(config);
-    
+    generateTable(currentConfig);
+
     // Fetch Data
     await fetchData();
 }
@@ -531,7 +258,7 @@ function generateSearchControls(config) {
                 select.innerHTML += `<option value="${opt}">${opt}</option>`;
             });
             formGroup.appendChild(select);
-        } else if (field.dateRange) {
+        } else if (field.type === 'date') {
             const startInput = document.createElement('input');
             startInput.type = 'date';
             startInput.id = `search-${field.name}-start`;
@@ -543,6 +270,19 @@ function generateSearchControls(config) {
             endInput.id = `search-${field.name}-end`;
             endInput.placeholder = 'End Date';
             formGroup.appendChild(endInput);
+        } else if (field.type === 'number') {
+            // Render min/max inputs for numeric range searches
+            const minInput = document.createElement('input');
+            minInput.type = 'number';
+            minInput.id = `search-${field.name}-min`;
+            minInput.placeholder = `${field.label} (min)`;
+            formGroup.appendChild(minInput);
+
+            const maxInput = document.createElement('input');
+            maxInput.type = 'number';
+            maxInput.id = `search-${field.name}-max`;
+            maxInput.placeholder = `${field.label} (max)`;
+            formGroup.appendChild(maxInput);
         } else {
             const input = document.createElement('input');
             input.type = 'text';
@@ -559,16 +299,19 @@ function generateSearchControls(config) {
 function generateTable(config) {
     const tableHead = document.getElementById('table-head');
     const headerRow = document.createElement('tr');
-    
+
+    const actionTh = document.createElement('th');
+    actionTh.textContent = 'Actions';
+    headerRow.appendChild(actionTh);
+
     config.fields.filter(f => f.showInTable).forEach(field => {
         const th = document.createElement('th');
         th.textContent = field.label;
         headerRow.appendChild(th);
     });
     
-    const actionTh = document.createElement('th');
-    actionTh.textContent = 'Actions';
-    headerRow.appendChild(actionTh);
+    
+    
     
     tableHead.innerHTML = '';
     tableHead.appendChild(headerRow);
@@ -578,7 +321,7 @@ function generateTable(config) {
 async function fetchData() {
     try {
         console.log("Fetching data for entity: ", currentEntity);
-        const config = ENTITY_CONFIG[currentEntity];
+        const config = currentConfig || await getEntityConfig(currentEntity);
         console.log("current config: ", config);
         const response = await apiRequest(`${API_BASE_URL}/${config.endpoint}`);
         console.log("current response: ", response);
@@ -596,20 +339,15 @@ async function fetchData() {
 
 // Render Table
 function renderTable() {
-    const config = ENTITY_CONFIG[currentEntity];
+    const config = currentConfig || (ENTITY_CONFIG && ENTITY_CONFIG[currentEntity]) || { fields: [] };
     const tableBody = document.getElementById('table-body');
     tableBody.innerHTML = '';
     
     currentData.forEach(item => {
-        const row = document.createElement('tr');
-        
-        config.fields.filter(f => f.showInTable).forEach(field => {
-            const td = document.createElement('td');
-            td.textContent = item[field.name] || '';
-            row.appendChild(td);
-        });
-        
+
         const actionTd = document.createElement('td');
+        const row = document.createElement('tr');
+
         actionTd.innerHTML = `
             <div class="action-buttons">
                 <button class="btn btn-small btn-secondary" onclick="editItem(${item.id})">Edit</button>
@@ -617,6 +355,14 @@ function renderTable() {
             </div>
         `;
         row.appendChild(actionTd);
+
+        config.fields.filter(f => f.showInTable).forEach(field => {
+            const td = document.createElement('td');
+            td.textContent = item[field.name] || '';
+            row.appendChild(td);
+        });
+        
+        
         
         tableBody.appendChild(row);
     });
@@ -625,40 +371,50 @@ function renderTable() {
 // Search Data
 async function searchData() {
     try {
-        const config = ENTITY_CONFIG[currentEntity];
-        
-        // Build query parameters from search inputs
-        const queryParams = new URLSearchParams();
-        
+        const config = currentConfig || (ENTITY_CONFIG && ENTITY_CONFIG[currentEntity]) || { fields: [] };
+        // Build three maps: query, number_range, date_range
+        const query = {};
+        const number_range = {};
+        const date_range = {};
+
         config.fields.filter(f => f.searchable).forEach(field => {
-            if (field.dateRange) {
-                // Handle date range fields
+            if (field.type === 'date') {
                 const startInput = document.getElementById(`search-${field.name}-start`);
                 const endInput = document.getElementById(`search-${field.name}-end`);
-                
-                if (startInput && startInput.value) {
-                    queryParams.append('start_date', startInput.value);
+                const start = startInput && startInput.value ? startInput.value : '';
+                const end = endInput && endInput.value ? endInput.value : '';
+                if (start || end) {
+                    date_range[field.name] = [start, end];
                 }
-                if (endInput && endInput.value) {
-                    queryParams.append('end_date', endInput.value);
+            } else if (field.type === 'number') {
+                const minInput = document.getElementById(`search-${field.name}-min`);
+                const maxInput = document.getElementById(`search-${field.name}-max`);
+                const min = minInput && minInput.value ? minInput.value : '';
+                const max = maxInput && maxInput.value ? maxInput.value : '';
+                if (min || max) {
+                    number_range[field.name] = [min, max];
                 }
             } else {
-                // Handle regular fields
                 const input = document.getElementById(`search-${field.name}`);
                 if (input && input.value) {
-                    queryParams.append(field.name, input.value);
+                    query[field.name] = input.value;
                 }
             }
         });
-        
-        // If no search params, just fetch all data
-        if (queryParams.toString() === '') {
+
+        // If nothing provided, fetch all
+        if (Object.keys(query).length === 0 && Object.keys(number_range).length === 0 && Object.keys(date_range).length === 0) {
             await fetchData();
             return;
         }
-        
-        // Call search endpoint with query params
-        const response = await apiRequest(`${API_BASE_URL}/${config.endpoint}/search?${queryParams.toString()}`);
+
+        // Encode maps as JSON in query string (server will decode)
+        const qs = new URLSearchParams();
+        if (Object.keys(query).length) qs.append('query', JSON.stringify(query));
+        if (Object.keys(number_range).length) qs.append('number_range', JSON.stringify(number_range));
+        if (Object.keys(date_range).length) qs.append('date_range', JSON.stringify(date_range));
+
+        const response = await apiRequest(`${API_BASE_URL}/${config.endpoint}/search?` + qs.toString());
         const result = await response.json();
         
         currentData = result.data || [];
@@ -681,7 +437,7 @@ function resetSearch() {
 // Open Modal
 function openModal(item = null) {
     editingItem = item;
-    const config = ENTITY_CONFIG[currentEntity];
+    const config = currentConfig || (ENTITY_CONFIG && ENTITY_CONFIG[currentEntity]) || { fields: [], title: currentEntity };
     const modal = document.getElementById('edit-modal');
     const form = document.getElementById('edit-form');
     
@@ -689,6 +445,8 @@ function openModal(item = null) {
     
     form.innerHTML = '';
     config.fields.forEach(field => {
+        // Do not show timestamps in add/edit forms
+        if (field.name === 'created_at' || field.name === 'updated_at') return;
         // Check if field should be shown in form
         if (field.showInForm === false) return;
         if (field.showInForm === 'edit' && !item) return;
@@ -725,6 +483,9 @@ function openModal(item = null) {
         if (item && item[field.name] !== undefined) {
             if (field.type === 'checkbox') {
                 input.checked = item[field.name];
+            } else if (field.type === 'date') {
+                // If the existing value is an ISO datetime, extract the date part for <input type="date">
+                input.value = formatDateForInput(item[field.name]);
             } else {
                 input.value = item[field.name];
             }
@@ -745,7 +506,7 @@ function closeModal() {
 
 // Save Data
 async function saveData() {
-    const config = ENTITY_CONFIG[currentEntity];
+    const config = currentConfig || (ENTITY_CONFIG && ENTITY_CONFIG[currentEntity]) || { fields: [] };
     const form = document.getElementById('edit-form');
     const formData = new FormData(form);
     
@@ -769,6 +530,10 @@ async function saveData() {
             }
         }
     });
+    // Preserve the original created_at when editing so backend receives the original timestamp
+    if (editingItem && editingItem.created_at !== undefined) {
+        data.created_at = editingItem.created_at;
+    }
     
     try {
         const url = editingItem 
@@ -824,6 +589,24 @@ function formatDateWithTimezone(dateString) {
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetString}`;
 }
 
+// Format an ISO datetime or date string to YYYY-MM-DD for <input type="date">
+function formatDateForInput(value) {
+    if (!value) return '';
+    try {
+        // If already a plain YYYY-MM-DD, return as-is
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+
+        const d = new Date(value);
+        if (isNaN(d.getTime())) return '';
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    } catch (e) {
+        return '';
+    }
+}
+
 // Edit Item
 function editItem(id) {
     const item = currentData.find(i => i.id === id);
@@ -837,7 +620,7 @@ async function deleteItem(id) {
     if (!confirm('Are you sure you want to delete this record?')) return;
     
     try {
-        const config = ENTITY_CONFIG[currentEntity];
+        const config = currentConfig || (ENTITY_CONFIG && ENTITY_CONFIG[currentEntity]) || { fields: [] };
         const response = await apiRequest(`${API_BASE_URL}/${config.endpoint}/${id}`, {
             method: 'DELETE'
         });

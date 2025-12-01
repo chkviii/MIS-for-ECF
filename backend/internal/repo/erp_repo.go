@@ -6,6 +6,55 @@ import (
 	"gorm.io/gorm"
 )
 
+// applyFilters applies query, number_range and date_range filters to the GORM tx.
+// - query: map[string]interface{} -> for string values use LIKE (without adding wildcards), otherwise =
+// - numberRange: map[string][]interface{} -> [min, max], apply >= min and <= max if present
+// - dateRange: map[string][]string -> [start, end] in YYYY-MM-DD, apply >= start and <= end
+func applyFilters(tx *gorm.DB, query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) *gorm.DB {
+	if tx == nil {
+		return tx
+	}
+
+	for key, value := range query {
+		if value != "" && value != nil {
+			if s, ok := value.(string); ok {
+				// Use LIKE as requested but do not add wildcard characters
+				tx = tx.Where(key+" LIKE ?", s)
+			} else {
+				tx = tx.Where(key+" = ?", value)
+			}
+		}
+	}
+
+	for key, rangeVals := range numberRange {
+		if len(rangeVals) > 0 {
+			if rangeVals[0] != nil && rangeVals[0] != "" {
+				tx = tx.Where(key+" >= ?", rangeVals[0])
+			}
+		}
+		if len(rangeVals) > 1 {
+			if rangeVals[1] != nil && rangeVals[1] != "" {
+				tx = tx.Where(key+" <= ?", rangeVals[1])
+			}
+		}
+	}
+
+	for key, rangeVals := range dateRange {
+		if len(rangeVals) > 0 {
+			if rangeVals[0] != "" {
+				tx = tx.Where(key+" >= ?", rangeVals[0])
+			}
+		}
+		if len(rangeVals) > 1 {
+			if rangeVals[1] != "" {
+				tx = tx.Where(key+" <= ?", rangeVals[1])
+			}
+		}
+	}
+
+	return tx
+}
+
 // UserRepository 用户仓库
 type UserRepository struct {
 	db *gorm.DB
@@ -41,6 +90,16 @@ func (r *UserRepository) Search(query map[string]interface{}) ([]models.User, er
 	return users, err
 }
 
+func (r *UserRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.User, error) {
+	tx := r.db.Model(&models.User{})
+
+	tx = applyFilters(tx, query, numberRange, dateRange)
+
+	var users []models.User
+	err := tx.Find(&users).Error
+	return users, err
+}
+
 func (r *UserRepository) Update(user *models.User) error {
 	return r.db.Save(user).Error
 }
@@ -64,18 +123,28 @@ func (r *ProjectRepository) Create(project *models.Project) error {
 
 func (r *ProjectRepository) GetAll() ([]models.Project, error) {
 	var projects []models.Project
-	err := r.db.Preload("Location").Find(&projects).Error
+	err := r.db.Find(&projects).Error
 	return projects, err
 }
 
 func (r *ProjectRepository) Search(query map[string]interface{}) ([]models.Project, error) {
-	tx := r.db.Preload("Location")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
 			tx = tx.Where(key+" = ?", value)
 		}
 	}
+
+	var projects []models.Project
+	err := tx.Find(&projects).Error
+	return projects, err
+}
+
+func (r *ProjectRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Project, error) {
+	tx := r.db.Model(&models.Project{})
+
+	tx = applyFilters(tx, query, numberRange, dateRange)
 
 	var projects []models.Project
 	err := tx.Find(&projects).Error
@@ -146,12 +215,12 @@ func (r *DonationRepository) Create(donation *models.Donation) error {
 
 func (r *DonationRepository) GetAll() ([]models.Donation, error) {
 	var donations []models.Donation
-	err := r.db.Preload("Donor").Preload("Project").Find(&donations).Error
+	err := r.db.Find(&donations).Error
 	return donations, err
 }
 
 func (r *DonationRepository) Search(query map[string]interface{}) ([]models.Donation, error) {
-	tx := r.db.Preload("Donor").Preload("Project")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -187,12 +256,12 @@ func (r *VolunteerRepository) Create(volunteer *models.Volunteer) error {
 
 func (r *VolunteerRepository) GetAll() ([]models.Volunteer, error) {
 	var volunteers []models.Volunteer
-	err := r.db.Preload("Location").Find(&volunteers).Error
+	err := r.db.Find(&volunteers).Error
 	return volunteers, err
 }
 
 func (r *VolunteerRepository) Search(query map[string]interface{}) ([]models.Volunteer, error) {
-	tx := r.db.Preload("Location")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -228,12 +297,12 @@ func (r *EmployeeRepository) Create(employee *models.Employee) error {
 
 func (r *EmployeeRepository) GetAll() ([]models.Employee, error) {
 	var employees []models.Employee
-	err := r.db.Preload("Location").Find(&employees).Error
+	err := r.db.Find(&employees).Error
 	return employees, err
 }
 
 func (r *EmployeeRepository) Search(query map[string]interface{}) ([]models.Employee, error) {
-	tx := r.db.Preload("Location")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -310,12 +379,12 @@ func (r *FundRepository) Create(fund *models.Fund) error {
 
 func (r *FundRepository) GetAll() ([]models.Fund, error) {
 	var funds []models.Fund
-	err := r.db.Preload("Donor").Preload("Project").Find(&funds).Error
+	err := r.db.Find(&funds).Error
 	return funds, err
 }
 
 func (r *FundRepository) Search(query map[string]interface{}) ([]models.Fund, error) {
-	tx := r.db.Preload("Donor").Preload("Project")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -351,12 +420,12 @@ func (r *ExpenseRepository) Create(expense *models.Expense) error {
 
 func (r *ExpenseRepository) GetAll() ([]models.Expense, error) {
 	var expenses []models.Expense
-	err := r.db.Preload("Fund").Preload("Project").Preload("Employee").Find(&expenses).Error
+	err := r.db.Find(&expenses).Error
 	return expenses, err
 }
 
 func (r *ExpenseRepository) Search(query map[string]interface{}) ([]models.Expense, error) {
-	tx := r.db.Preload("Fund").Preload("Project").Preload("Employee")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -433,12 +502,12 @@ func (r *PurchaseRepository) Create(purchase *models.Purchase) error {
 
 func (r *PurchaseRepository) GetAll() ([]models.Purchase, error) {
 	var purchases []models.Purchase
-	err := r.db.Preload("Transaction").Find(&purchases).Error
+	err := r.db.Find(&purchases).Error
 	return purchases, err
 }
 
 func (r *PurchaseRepository) Search(query map[string]interface{}) ([]models.Purchase, error) {
-	tx := r.db.Preload("Transaction")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -474,12 +543,12 @@ func (r *PayrollRepository) Create(payroll *models.Payroll) error {
 
 func (r *PayrollRepository) GetAll() ([]models.Payroll, error) {
 	var payrolls []models.Payroll
-	err := r.db.Preload("Employee").Preload("Transaction").Find(&payrolls).Error
+	err := r.db.Find(&payrolls).Error
 	return payrolls, err
 }
 
 func (r *PayrollRepository) Search(query map[string]interface{}) ([]models.Payroll, error) {
-	tx := r.db.Preload("Employee").Preload("Transaction")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -515,12 +584,12 @@ func (r *InventoryRepository) Create(inventory *models.Inventory) error {
 
 func (r *InventoryRepository) GetAll() ([]models.Inventory, error) {
 	var inventories []models.Inventory
-	err := r.db.Preload("Purchase").Preload("Location").Find(&inventories).Error
+	err := r.db.Find(&inventories).Error
 	return inventories, err
 }
 
 func (r *InventoryRepository) Search(query map[string]interface{}) ([]models.Inventory, error) {
-	tx := r.db.Preload("Purchase").Preload("Location")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -597,12 +666,12 @@ func (r *GiftRepository) Create(gift *models.Gift) error {
 
 func (r *GiftRepository) GetAll() ([]models.Gift, error) {
 	var gifts []models.Gift
-	err := r.db.Preload("Donation").Preload("Delivery").Preload("GiftType").Find(&gifts).Error
+	err := r.db.Find(&gifts).Error
 	return gifts, err
 }
 
 func (r *GiftRepository) Search(query map[string]interface{}) ([]models.Gift, error) {
-	tx := r.db.Preload("Donation").Preload("Delivery").Preload("GiftType")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -638,12 +707,12 @@ func (r *InventoryTransactionRepository) Create(transaction *models.InventoryTra
 
 func (r *InventoryTransactionRepository) GetAll() ([]models.InventoryTransaction, error) {
 	var transactions []models.InventoryTransaction
-	err := r.db.Preload("Inventory").Find(&transactions).Error
+	err := r.db.Find(&transactions).Error
 	return transactions, err
 }
 
 func (r *InventoryTransactionRepository) Search(query map[string]interface{}) ([]models.InventoryTransaction, error) {
-	tx := r.db.Preload("Inventory")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -679,12 +748,12 @@ func (r *DeliveryRepository) Create(delivery *models.Delivery) error {
 
 func (r *DeliveryRepository) GetAll() ([]models.Delivery, error) {
 	var deliveries []models.Delivery
-	err := r.db.Preload("Inventory").Preload("Project").Preload("Location").Find(&deliveries).Error
+	err := r.db.Find(&deliveries).Error
 	return deliveries, err
 }
 
 func (r *DeliveryRepository) Search(query map[string]interface{}) ([]models.Delivery, error) {
-	tx := r.db.Preload("Inventory").Preload("Project").Preload("Location")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -720,12 +789,12 @@ func (r *VolunteerProjectRepository) Create(vp *models.VolunteerProject) error {
 
 func (r *VolunteerProjectRepository) GetAll() ([]models.VolunteerProject, error) {
 	var vps []models.VolunteerProject
-	err := r.db.Preload("Volunteer").Preload("Project").Find(&vps).Error
+	err := r.db.Find(&vps).Error
 	return vps, err
 }
 
 func (r *VolunteerProjectRepository) Search(query map[string]interface{}) ([]models.VolunteerProject, error) {
-	tx := r.db.Preload("Volunteer").Preload("Project")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -761,12 +830,12 @@ func (r *EmployeeProjectRepository) Create(ep *models.EmployeeProject) error {
 
 func (r *EmployeeProjectRepository) GetAll() ([]models.EmployeeProject, error) {
 	var eps []models.EmployeeProject
-	err := r.db.Preload("Employee").Preload("Project").Find(&eps).Error
+	err := r.db.Find(&eps).Error
 	return eps, err
 }
 
 func (r *EmployeeProjectRepository) Search(query map[string]interface{}) ([]models.EmployeeProject, error) {
-	tx := r.db.Preload("Employee").Preload("Project")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -802,12 +871,12 @@ func (r *FundProjectRepository) Create(fp *models.FundProject) error {
 
 func (r *FundProjectRepository) GetAll() ([]models.FundProject, error) {
 	var fps []models.FundProject
-	err := r.db.Preload("Transaction").Preload("Project").Preload("Fund").Find(&fps).Error
+	err := r.db.Find(&fps).Error
 	return fps, err
 }
 
 func (r *FundProjectRepository) Search(query map[string]interface{}) ([]models.FundProject, error) {
-	tx := r.db.Preload("Transaction").Preload("Project").Preload("Fund")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -843,12 +912,12 @@ func (r *DonationInventoryRepository) Create(di *models.DonationInventory) error
 
 func (r *DonationInventoryRepository) GetAll() ([]models.DonationInventory, error) {
 	var dis []models.DonationInventory
-	err := r.db.Preload("Donor").Preload("Inventory").Preload("Project").Find(&dis).Error
+	err := r.db.Find(&dis).Error
 	return dis, err
 }
 
 func (r *DonationInventoryRepository) Search(query map[string]interface{}) ([]models.DonationInventory, error) {
-	tx := r.db.Preload("Donor").Preload("Inventory").Preload("Project")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -883,12 +952,12 @@ func (r *DeliveryInventoryRepository) Create(di *models.DeliveryInventory) error
 }
 func (r *DeliveryInventoryRepository) GetAll() ([]models.DeliveryInventory, error) {
 	var dis []models.DeliveryInventory
-	err := r.db.Preload("Delivery").Preload("Inventory").Preload("Project").Find(&dis).Error
+	err := r.db.Find(&dis).Error
 	return dis, err
 }
 
 func (r *DeliveryInventoryRepository) Search(query map[string]interface{}) ([]models.DeliveryInventory, error) {
-	tx := r.db.Preload("Delivery").Preload("Inventory").Preload("Project")
+	tx := r.db
 	for key, value := range query {
 		if value != "" && value != nil {
 			tx = tx.Where(key+" = ?", value)
@@ -922,12 +991,12 @@ func (r *ScheduleRepository) Create(schedule *models.Schedule) error {
 
 func (r *ScheduleRepository) GetAll() ([]models.Schedule, error) {
 	var schedules []models.Schedule
-	err := r.db.Preload("Project").Find(&schedules).Error
+	err := r.db.Find(&schedules).Error
 	return schedules, err
 }
 
 func (r *ScheduleRepository) Search(query map[string]interface{}) ([]models.Schedule, error) {
-	tx := r.db.Preload("Project")
+	tx := r.db
 
 	for key, value := range query {
 		if value != "" && value != nil {
@@ -946,4 +1015,174 @@ func (r *ScheduleRepository) Update(schedule *models.Schedule) error {
 
 func (r *ScheduleRepository) Delete(id uint) error {
 	return r.db.Delete(&models.Schedule{}, id).Error
+}
+
+// ------- Generic Filter methods for repositories (use applyFilters) -------
+
+func (r *DonorRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Donor, error) {
+	tx := r.db.Model(&models.Donor{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var donors []models.Donor
+	err := tx.Find(&donors).Error
+	return donors, err
+}
+
+func (r *DonationRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Donation, error) {
+	tx := r.db.Model(&models.Donation{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var donations []models.Donation
+	err := tx.Find(&donations).Error
+	return donations, err
+}
+
+func (r *VolunteerRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Volunteer, error) {
+	tx := r.db.Model(&models.Volunteer{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var volunteers []models.Volunteer
+	err := tx.Find(&volunteers).Error
+	return volunteers, err
+}
+
+func (r *EmployeeRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Employee, error) {
+	tx := r.db.Model(&models.Employee{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var employees []models.Employee
+	err := tx.Find(&employees).Error
+	return employees, err
+}
+
+func (r *LocationRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Location, error) {
+	tx := r.db.Model(&models.Location{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var locations []models.Location
+	err := tx.Find(&locations).Error
+	return locations, err
+}
+
+func (r *FundRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Fund, error) {
+	tx := r.db.Model(&models.Fund{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var funds []models.Fund
+	err := tx.Find(&funds).Error
+	return funds, err
+}
+
+func (r *ExpenseRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Expense, error) {
+	tx := r.db.Model(&models.Expense{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var expenses []models.Expense
+	err := tx.Find(&expenses).Error
+	return expenses, err
+}
+
+func (r *TransactionRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Transaction, error) {
+	tx := r.db.Model(&models.Transaction{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var transactions []models.Transaction
+	err := tx.Find(&transactions).Error
+	return transactions, err
+}
+
+func (r *PurchaseRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Purchase, error) {
+	tx := r.db.Model(&models.Purchase{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var purchases []models.Purchase
+	err := tx.Find(&purchases).Error
+	return purchases, err
+}
+
+func (r *PayrollRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Payroll, error) {
+	tx := r.db.Model(&models.Payroll{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var payrolls []models.Payroll
+	err := tx.Find(&payrolls).Error
+	return payrolls, err
+}
+
+func (r *InventoryRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Inventory, error) {
+	tx := r.db.Model(&models.Inventory{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var inventories []models.Inventory
+	err := tx.Find(&inventories).Error
+	return inventories, err
+}
+
+func (r *GiftTypeRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.GiftType, error) {
+	tx := r.db.Model(&models.GiftType{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var giftTypes []models.GiftType
+	err := tx.Find(&giftTypes).Error
+	return giftTypes, err
+}
+
+func (r *GiftRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Gift, error) {
+	tx := r.db.Model(&models.Gift{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var gifts []models.Gift
+	err := tx.Find(&gifts).Error
+	return gifts, err
+}
+
+func (r *InventoryTransactionRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.InventoryTransaction, error) {
+	tx := r.db.Model(&models.InventoryTransaction{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var transactions []models.InventoryTransaction
+	err := tx.Find(&transactions).Error
+	return transactions, err
+}
+
+func (r *DeliveryRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Delivery, error) {
+	tx := r.db.Model(&models.Delivery{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var deliveries []models.Delivery
+	err := tx.Find(&deliveries).Error
+	return deliveries, err
+}
+
+func (r *VolunteerProjectRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.VolunteerProject, error) {
+	tx := r.db.Model(&models.VolunteerProject{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var vps []models.VolunteerProject
+	err := tx.Find(&vps).Error
+	return vps, err
+}
+
+func (r *EmployeeProjectRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.EmployeeProject, error) {
+	tx := r.db.Model(&models.EmployeeProject{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var eps []models.EmployeeProject
+	err := tx.Find(&eps).Error
+	return eps, err
+}
+
+func (r *FundProjectRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.FundProject, error) {
+	tx := r.db.Model(&models.FundProject{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var fps []models.FundProject
+	err := tx.Find(&fps).Error
+	return fps, err
+}
+
+func (r *DonationInventoryRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.DonationInventory, error) {
+	tx := r.db.Model(&models.DonationInventory{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var dis []models.DonationInventory
+	err := tx.Find(&dis).Error
+	return dis, err
+}
+
+func (r *DeliveryInventoryRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.DeliveryInventory, error) {
+	tx := r.db.Model(&models.DeliveryInventory{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var dis []models.DeliveryInventory
+	err := tx.Find(&dis).Error
+	return dis, err
+}
+
+func (r *ScheduleRepository) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Schedule, error) {
+	tx := r.db.Model(&models.Schedule{})
+	tx = applyFilters(tx, query, numberRange, dateRange)
+	var schedules []models.Schedule
+	err := tx.Find(&schedules).Error
+	return schedules, err
 }

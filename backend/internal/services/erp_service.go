@@ -219,6 +219,10 @@ func (s *ProjectService) Search(query map[string]interface{}) ([]models.Project,
 	return s.repo.Search(query)
 }
 
+func (s *ProjectService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Project, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *ProjectService) Update(project *models.Project) error {
 	return s.repo.Update(project)
 }
@@ -239,6 +243,10 @@ func (s *DonorService) GetAll() ([]models.Donor, error) {
 
 func (s *DonorService) Search(query map[string]interface{}) ([]models.Donor, error) {
 	return s.repo.Search(query)
+}
+
+func (s *DonorService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Donor, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
 }
 
 func (s *DonorService) Update(donor *models.Donor) error {
@@ -263,6 +271,10 @@ func (s *DonationService) Search(query map[string]interface{}) ([]models.Donatio
 	return s.repo.Search(query)
 }
 
+func (s *DonationService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Donation, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *DonationService) Update(donation *models.Donation) error {
 	return s.repo.Update(donation)
 }
@@ -283,6 +295,10 @@ func (s *VolunteerService) GetAll() ([]models.Volunteer, error) {
 
 func (s *VolunteerService) Search(query map[string]interface{}) ([]models.Volunteer, error) {
 	return s.repo.Search(query)
+}
+
+func (s *VolunteerService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Volunteer, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
 }
 
 func (s *VolunteerService) Update(volunteer *models.Volunteer) error {
@@ -307,6 +323,10 @@ func (s *EmployeeService) Search(query map[string]interface{}) ([]models.Employe
 	return s.repo.Search(query)
 }
 
+func (s *EmployeeService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Employee, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *EmployeeService) Update(employee *models.Employee) error {
 	return s.repo.Update(employee)
 }
@@ -327,6 +347,10 @@ func (s *LocationService) GetAll() ([]models.Location, error) {
 
 func (s *LocationService) Search(query map[string]interface{}) ([]models.Location, error) {
 	return s.repo.Search(query)
+}
+
+func (s *LocationService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Location, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
 }
 
 func (s *LocationService) Update(location *models.Location) error {
@@ -351,6 +375,10 @@ func (s *FundService) Search(query map[string]interface{}) ([]models.Fund, error
 	return s.repo.Search(query)
 }
 
+func (s *FundService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Fund, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *FundService) Update(fund *models.Fund) error {
 	return s.repo.Update(fund)
 }
@@ -371,6 +399,10 @@ func (s *ExpenseService) GetAll() ([]models.Expense, error) {
 
 func (s *ExpenseService) Search(query map[string]interface{}) ([]models.Expense, error) {
 	return s.repo.Search(query)
+}
+
+func (s *ExpenseService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Expense, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
 }
 
 func (s *ExpenseService) Update(expense *models.Expense) error {
@@ -395,6 +427,10 @@ func (s *TransactionService) Search(query map[string]interface{}) ([]models.Tran
 	return s.repo.Search(query)
 }
 
+func (s *TransactionService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Transaction, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *TransactionService) Update(transaction *models.Transaction) error {
 	return s.repo.Update(transaction)
 }
@@ -417,6 +453,10 @@ func (s *PurchaseService) Search(query map[string]interface{}) ([]models.Purchas
 	return s.repo.Search(query)
 }
 
+func (s *PurchaseService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Purchase, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *PurchaseService) Update(purchase *models.Purchase) error {
 	return s.repo.Update(purchase)
 }
@@ -433,6 +473,10 @@ func (s *PayrollService) Create(payroll *models.Payroll) error {
 
 func (s *PayrollService) GetAll() ([]models.Payroll, error) {
 	return s.repo.GetAll()
+}
+
+func (s *PayrollService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Payroll, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
 }
 
 func (s *PayrollService) Search(query map[string]interface{}) ([]models.Payroll, error) {
@@ -457,6 +501,10 @@ func (s *InventoryService) GetAll() ([]models.Inventory, error) {
 	return s.repo.GetAll()
 }
 
+func (s *InventoryService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Inventory, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *InventoryService) Search(query map[string]interface{}) ([]models.Inventory, error) {
 	return s.repo.Search(query)
 }
@@ -477,6 +525,10 @@ func (s *GiftTypeService) Create(giftType *models.GiftType) error {
 
 func (s *GiftTypeService) GetAll() ([]models.GiftType, error) {
 	return s.repo.GetAll()
+}
+
+func (s *GiftTypeService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.GiftType, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
 }
 
 func (s *GiftTypeService) Search(query map[string]interface{}) ([]models.GiftType, error) {
@@ -501,6 +553,10 @@ func (s *GiftService) GetAll() ([]models.Gift, error) {
 	return s.repo.GetAll()
 }
 
+func (s *GiftService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Gift, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *GiftService) Search(query map[string]interface{}) ([]models.Gift, error) {
 	return s.repo.Search(query)
 }
@@ -521,6 +577,10 @@ func (s *InventoryTransactionService) Create(transaction *models.InventoryTransa
 
 func (s *InventoryTransactionService) GetAll() ([]models.InventoryTransaction, error) {
 	return s.repo.GetAll()
+}
+
+func (s *InventoryTransactionService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.InventoryTransaction, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
 }
 
 func (s *InventoryTransactionService) Search(query map[string]interface{}) ([]models.InventoryTransaction, error) {
@@ -545,6 +605,10 @@ func (s *DeliveryService) GetAll() ([]models.Delivery, error) {
 	return s.repo.GetAll()
 }
 
+func (s *DeliveryService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Delivery, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *DeliveryService) Search(query map[string]interface{}) ([]models.Delivery, error) {
 	return s.repo.Search(query)
 }
@@ -565,6 +629,10 @@ func (s *VolunteerProjectService) Create(vp *models.VolunteerProject) error {
 
 func (s *VolunteerProjectService) GetAll() ([]models.VolunteerProject, error) {
 	return s.repo.GetAll()
+}
+
+func (s *VolunteerProjectService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.VolunteerProject, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
 }
 
 func (s *VolunteerProjectService) Search(query map[string]interface{}) ([]models.VolunteerProject, error) {
@@ -589,6 +657,10 @@ func (s *EmployeeProjectService) GetAll() ([]models.EmployeeProject, error) {
 	return s.repo.GetAll()
 }
 
+func (s *EmployeeProjectService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.EmployeeProject, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *EmployeeProjectService) Search(query map[string]interface{}) ([]models.EmployeeProject, error) {
 	return s.repo.Search(query)
 }
@@ -609,6 +681,10 @@ func (s *FundProjectService) Create(fp *models.FundProject) error {
 
 func (s *FundProjectService) GetAll() ([]models.FundProject, error) {
 	return s.repo.GetAll()
+}
+
+func (s *FundProjectService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.FundProject, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
 }
 
 func (s *FundProjectService) Search(query map[string]interface{}) ([]models.FundProject, error) {
@@ -633,6 +709,10 @@ func (s *DonationInventoryService) GetAll() ([]models.DonationInventory, error) 
 	return s.repo.GetAll()
 }
 
+func (s *DonationInventoryService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.DonationInventory, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *DonationInventoryService) Search(query map[string]interface{}) ([]models.DonationInventory, error) {
 	return s.repo.Search(query)
 }
@@ -655,6 +735,10 @@ func (s *DeliveryInventoryService) GetAll() ([]models.DeliveryInventory, error) 
 	return s.repo.GetAll()
 }
 
+func (s *DeliveryInventoryService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.DeliveryInventory, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
 func (s *DeliveryInventoryService) Search(query map[string]interface{}) ([]models.DeliveryInventory, error) {
 	return s.repo.Search(query)
 }
@@ -675,6 +759,10 @@ func (s *ScheduleService) Create(schedule *models.Schedule) error {
 
 func (s *ScheduleService) GetAll() ([]models.Schedule, error) {
 	return s.repo.GetAll()
+}
+
+func (s *ScheduleService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.Schedule, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
 }
 
 func (s *ScheduleService) Search(query map[string]interface{}) ([]models.Schedule, error) {

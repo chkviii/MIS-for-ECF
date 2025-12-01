@@ -1,22 +1,27 @@
 @echo off
-echo Building for ARMv7l...
+echo Building for linux amd64...
 
 REM Update Go modules
 go mod tidy
 
-REM Set environment variables for ARMv7l
+@REM REM Set environment variables for ARMv7l
+@REM set GOOS=linux
+@REM set GOARCH=arm
+@REM set GOARM=7
+@REM set CGO_ENABLED=0
+
+REM Set environment variables for linux x86_64
 set GOOS=linux
-set GOARCH=arm
-set GOARM=7
-set CGO_ENABLED=0
+set GOARCH=amd64
+set CGO_ENABLED=1
+
 
 REM Building...
-go build -a -ldflags "-s -w" -o mypage-backend-armv7l server/main.go
+go build -a -ldflags "-s -w" -o erp-backend-amd64 ../server/main.go
 
 if %ERRORLEVEL% EQU 0 (
-    echo Build successful! Output: mypage-backend-armv7l
-    echo File size:
-    dir mypage-backend-armv7l
+    echo Build successful! Output: erp-backend-amd64
+    dir erp-backend-amd64
 ) else (
     echo Build failed!
     exit /b 1

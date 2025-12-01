@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Employee Dashboard — Report</title>
+
+    <!-- Chart.js -->
+    <script src="/static/js/lib/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        /* 简化版 employee-dashboard 风格 */
+        :root {
+            --bg:#0f1724; --panel:#0b1320; --card:#0f1724; --muted:#94a3b8; --accent:#60a5fa;
+            --glass: rgba(255,255,255,0.03);
+        }
+        html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Roboto, Arial;background:linear-gradient(180deg,#071025 0%, #07162a 100%);color:#e6eef8}
+        .app{display:flex;min-height:100vh}
+        /* sidebar */
+        .sidebar{width:260px;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:2px 0 8px rgba(2,6,23,0.6)}
+        .brand{font-weight:700;font-size:18px;margin-bottom:18px;color:var(--accent)}
+        .nav{display:flex;flex-direction:column;gap:8px}
+        .nav button{background:transparent;border:0;color:var(--muted);padding:8px;border-radius:8px;text-align:left;cursor:pointer}
+        .nav button.active{background:var(--glass);color:#fff}
+        .user-list{margin-top:18px;font-size:13px;color:var(--muted)}
+        /* main */
+        .main{flex:1;padding:24px}
+        .topbar{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+        .search{flex:1;display:flex;gap:8px;align-items:center}
+        .search input{flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#e6eef8}
+        .controls{display:flex;gap:8px;align-items:center}
+        .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+        .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+        .metrics{display:flex;gap:12px}
+        .metric{flex:1;padding:14px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);text-align:left}
+        .metric h3{margin:0;font-size:13px;color:var(--muted)}
+        .metric p{margin:6px 0 0;font-weight:700;font-size:20px}
+        canvas{width:100%!important;height:360px!important}
+        .footer{margin-top:12px;font-size:13px;color:var(--muted)}
+        /* responsive */
+        @media (max-width:900px){.sidebar{display:none}.grid{grid-template-columns:repeat(1,1fr)}canvas{height:260px!important}}
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar card">
+            <div class="brand">Employee Dashboard</div>
+            <div class="nav">
+                <button class="active" data-view="overview">概览</button>
+                <button data-view="reports">报表</button>
+                <button data-view="employees">员工</button>
+                <button data-view="settings">设置</button>
+            </div>
+
+            <div class="user-list card" style="margin-top:14px;padding:12px">
+                <div style="font-weight:600;margin-bottom:8px;color:#fff">活跃员工</div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                    <div style="display:flex;justify-content:space-between;color:var(--muted)"><span>张三</span><small>在线</small></div>
+                    <div style="display:flex;justify-content:space-between;color:var(--muted)"><span>李四</span><small>离线</small></div>
+                    <div style="display:flex;justify-content:space-between;color:var(--muted)"><span>王五</span><small>在线</small></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div class="search card" style="padding:8px 12px">
+                    <input id="metricInput" type="text" placeholder="指标，例如 sales 或 productId" value="sales" />
+                    <div class="controls">
+                        <input id="startDate" type="date" />
+                        <input id="endDate" type="date" />
+                        <select id="chartType">
+                            <option value="line">折线图（时间）</option>
+                            <option value="pie">饼图（占比）</option>
+                        </select>
+                        <button id="applyBtn" style="background:var(--accent);border:0;padding:8px 12px;border-radius:8px;color:#041027;cursor:pointer">更新</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card metric">
+                    <h3>总收入</h3>
+                    <p id="metricTotal">—</p>
+                </div>
+                <div class="card metric">
+                    <h3>活动用户</h3>
+                    <p id="activeUsers">—</p>
+                </div>
+                <div class="card metric">
+                    <h3>本周期增长</h3>
+                    <p id="growth">—</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <canvas id="mainChart"></canvas>
+                <div class="footer">提示：调整指标和日期后点击 更新。数据来自 /api/report?metric=...&start=...&end=...</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // GitHub Copilot-style helper (employee-dashboard layout)
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        let chart = null;
+
+        const endInput = document.getElementById('endDate');
+        const startInput = document.getElementById('startDate');
+        const today = new Date();
+        const toISODate = d => d.toISOString().slice(0,10);
+        endInput.value = toISODate(today);
+        const past = new Date(today); past.setDate(past.getDate()-29);
+        startInput.value = toISODate(past);
+
+        document.getElementById('applyBtn').addEventListener('click', update);
+        document.getElementById('chartType').addEventListener('change', update);
+
+        async function update(){
+            const metric = document.getElementById('metricInput').value.trim();
+            const start = startInput.value;
+            const end = endInput.value;
+            if(!metric){ alert('请输入指标'); return; }
+
+            const url = `/api/report?metric=${encodeURIComponent(metric)}&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+
+            let data = null;
+            try {
+                const res = await fetch(url, {cache:'no-store'});
+                if(!res.ok) throw new Error('fetch failed');
+                data = await res.json();
+            } catch (err) {
+                console.warn('请求失败，使用示例数据', err);
+                data = sampleData(metric, start, end);
+            }
+
+            // update small metrics (if available)
+            const total = data.total ?? aggregateTotalFromSeries(data);
+            document.getElementById('metricTotal').textContent = total;
+            document.getElementById('activeUsers').textContent = data.activeUsers ?? '—';
+            document.getElementById('growth').textContent = data.growth ?? '—';
+
+            const type = document.getElementById('chartType').value;
+            if(type === 'line'){
+                const series = normalizeSeries(data);
+                renderLine(series, metric);
+            } else {
+                const pie = normalizePie(data);
+                renderPie(pie, metric);
+            }
+        }
+
+        function normalizeSeries(data){
+            if(Array.isArray(data.series)) return data.series.map(s=>({
+                name: s.name || s.label || 'series',
+                points: (s.points || s.data || []).map(p=>({t: p.t || p.date, v: p.v ?? p.value}))
+            }));
+            if(data.points) return [{name: data.name||'series', points: data.points}];
+            return [];
+        }
+
+        function normalizePie(data){
+            if(Array.isArray(data.pie)) return data.pie.map(p=>({label:p.label, value:p.value}));
+            if(Array.isArray(data.series)) return data.series.map(s=>{
+                const total = (s.points||s.data||[]).reduce((acc,p)=>acc+(p.v??(p.value||0)),0);
+                return {label: s.name||s.label, value: total};
+            });
+            return [];
+        }
+
+        function aggregateTotalFromSeries(data){
+            if(!Array.isArray(data.series)) return '—';
+            return data.series.flatMap(s => s.points || s.data || []).reduce((acc,p)=>acc + (p.v ?? p.value ?? 0), 0);
+        }
+
+        function renderLine(series, metricLabel){
+            const datasets = series.map((s,i)=>({
+                label: s.name || `Series ${i+1}`,
+                data: (s.points||[]).map(p=>({x: parseDate(p.t), y: Number(p.v)||0})),
+                borderColor: palette(i),
+                backgroundColor: hexToRgba(palette(i), 0.12),
+                tension: 0.25,
+                pointRadius: 3,
+                fill: true
+            }));
+
+            const config = {
+                type: 'line',
+                data: {datasets},
+                options: {
+                    responsive: true,
+                    interaction: {mode:'index', intersect:false},
+                    plugins: {legend:{position:'top'}, title:{display:true, text:`${metricLabel} — 时间序列`}},
+                    scales: {
+                        x: {type:'time', time:{unit:'day', tooltipFormat:'yyyy-MM-dd'}, title:{display:true,text:'时间'}},
+                        y: {beginAtZero:true, title:{display:true,text:'数值'}}
+                    }
+                }
+            };
+
+            if(chart) chart.destroy();
+            chart = new Chart(ctx, config);
+        }
+
+        function renderPie(pieData, metricLabel){
+            const labels = pieData.map(p=>p.label);
+            const values = pieData.map(p=>p.value);
+            const colors = labels.map((_,i)=>palette(i));
+            const config = {
+                type:'pie',
+                data:{labels, datasets:[{data: values, backgroundColor: colors}]},
+                options:{
+                    responsive:true,
+                    plugins:{
+                        legend:{position:'right'},
+                        title:{display:true, text:`${metricLabel} — 区间占比`},
+                        tooltip:{callbacks:{label: ctx => {
+                            const val = ctx.parsed;
+                            const sum = values.reduce((a,b)=>a+b,0);
+                            const pct = sum ? (val/sum*100).toFixed(1)+'%' : '0%';
+                            return `${ctx.label}: ${val} (${pct})`;
+                        }}}
+                    }
+                }
+            };
+            if(chart) chart.destroy();
+            chart = new Chart(ctx, config);
+        }
+
+        function parseDate(v){ if(!v) return null; if(typeof v === 'number') return new Date(v); if(typeof v === 'string') return new Date(v); return v; }
+        function palette(i){ const colors=['#60a5fa','#f97316','#a78bfa','#06b6d4','#f59e0b','#ef4444','#34d399','#f472b6']; return colors[i%colors.length]; }
+        function hexToRgba(hex,a){ const h=hex.replace('#',''); const n=parseInt(h,16); const r=(n>>16)&255,g=(n>>8)&255,b=n&255; return `rgba(${r},${g},${b},${a})`; }
+
+        function sampleData(metric, start, end){
+            const s=new Date(start), e=new Date(end);
+            const days=Math.max(1, Math.round((e-s)/(1000*60*60*24))+1);
+            const seriesCount=2;
+            const series=[];
+            for(let i=0;i<seriesCount;i++){
+                const points=[];
+                for(let d=0; d<days; d++){
+                    const dt = new Date(s); dt.setDate(s.getDate()+d);
+                    const base = 80*(i+1) + Math.sin(d/5+i)*25;
+                    points.push({t: toISODate(dt), v: Math.max(0, Math.round(base + Math.random()*40-20))});
+                }
+                series.push({name:`Group ${i+1}`, points});
+            }
+            return {series, total: series.flatMap(s=>s.points).reduce((a,p)=>a+(p.v||0),0), activeUsers: Math.floor(Math.random()*200+50), growth: (Math.random()*10-2).toFixed(1) + '%'};
+        }
+
+        // initial load
+        update();
+    </script>
+</body>
+</html>

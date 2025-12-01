@@ -2,6 +2,8 @@ package services
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"erp-backend/internal/models"
@@ -57,6 +59,21 @@ type AuthResponse struct {
 	Token    string `json:"token"`
 	UserType string `json:"user_type"`
 	UserID   uint   `json:"user_id"`
+	RoleID   uint   `json:"role_id"`
+}
+
+// generateID 生成唯一ID
+func generateID(prefix string) string {
+	p := strings.ToUpper(prefix)
+	if len(p) > 3 {
+		p = p[:3]
+	} else if len(p) < 3 {
+		p = fmt.Sprintf("%3s", p)
+	}
+	t := time.Now().UTC()
+	date := t.Format("060102") // YYMMDD
+	tm := t.Format("150405")   // HHMMSS
+	return fmt.Sprintf("%s%s%s", p, date, tm)
 }
 
 // Register 用户注册
@@ -91,12 +108,14 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 	switch req.UserType {
 	case "employee":
 		employee := &models.Employee{
-			FirstName: req.FirstName,
-			LastName:  req.LastName,
-			Email:     req.Email,
-			Phone:     req.Phone,
-			Status:    "pending", // set to pending for employee
-			CreatedAt: time.Now(),
+			UserID:     &user.ID,
+			EmployeeID: generateID("EMP"),
+			FirstName:  req.FirstName,
+			LastName:   req.LastName,
+			Email:      req.Email,
+			Phone:      req.Phone,
+			Status:     "pending", // set to pending for employee
+			CreatedAt:  time.Now(),
 		}
 		if err := s.employeeRepo.Create(employee); err != nil {
 			return nil, errors.New("failed to create employee information: " + err.Error())
@@ -104,12 +123,14 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 
 	case "volunteer":
 		volunteer := &models.Volunteer{
-			FirstName: req.FirstName,
-			LastName:  req.LastName,
-			Email:     req.Email,
-			Phone:     req.Phone,
-			Status:    "active",
-			CreatedAt: time.Now(),
+			UserID:      &user.ID,
+			VolunteerID: generateID("VOL"),
+			FirstName:   req.FirstName,
+			LastName:    req.LastName,
+			Email:       req.Email,
+			Phone:       req.Phone,
+			Status:      "active",
+			CreatedAt:   time.Now(),
 		}
 		if err := s.volunteerRepo.Create(volunteer); err != nil {
 			return nil, errors.New("failed to create volunteer information: " + err.Error())
@@ -117,6 +138,8 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 
 	case "donor":
 		donor := &models.Donor{
+			UserID:    &user.ID,
+			DonorID:   generateID("DON"),
 			FirstName: req.FirstName,
 			LastName:  req.LastName,
 			Email:     req.Email,
@@ -133,7 +156,7 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 	}
 
 	// 生成 JWT Token
-	token, err := utils.GenerateToken(int64(user.ID), user.Username, user.UserType)
+	token, err := utils.GenerateToken(user.ID, user.Username, user.UserType, 0)
 	if err != nil {
 		return nil, errors.New("failed to generate token")
 	}
@@ -142,6 +165,7 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 		Token:    token,
 		UserType: user.UserType,
 		UserID:   user.ID,
+		RoleID:   0,
 	}, nil
 }
 
@@ -149,7 +173,7 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	// 查找用户
 	users, err := s.userRepo.Search(map[string]interface{}{"username": req.Username})
-	if err != nil && len(users) != 1 {
+	if err != nil || len(users) != 1 {
 		return nil, errors.New("wrong username or password")
 	}
 
@@ -165,8 +189,36 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 		return nil, errors.New("user has been disabled")
 	}
 
+	var role_id uint
+
+	switch user.UserType {
+	case "employee":
+		employees, err := s.employeeRepo.Search(map[string]interface{}{"user_id": user.ID})
+		if err != nil || len(employees) != 1 {
+			return nil, errors.New("employee profile not found")
+		} else {
+			role_id = employees[0].ID
+		}
+	case "volunteer":
+		volunteers, err := s.volunteerRepo.Search(map[string]interface{}{"user_id": user.ID})
+		if err != nil || len(volunteers) != 1 {
+			return nil, errors.New("volunteer profile not found")
+		} else {
+			role_id = volunteers[0].ID
+		}
+	case "donor":
+		donors, err := s.donorRepo.Search(map[string]interface{}{"user_id": user.ID})
+		if err != nil || len(donors) != 1 {
+			return nil, errors.New("donor profile not found")
+		} else {
+			role_id = donors[0].ID
+		}
+	default:
+		return nil, errors.New("invalid user type")
+	}
+
 	// 生成 JWT Token
-	token, err := utils.GenerateToken(int64(user.ID), user.Username, user.UserType)
+	token, err := utils.GenerateToken(user.ID, user.Username, user.UserType, role_id)
 	if err != nil {
 		return nil, errors.New("failed to generate token")
 	}
@@ -175,5 +227,6 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 		Token:    token,
 		UserType: user.UserType,
 		UserID:   user.ID,
+		RoleID:   role_id,
 	}, nil
 }

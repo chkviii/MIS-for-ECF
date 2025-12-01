@@ -121,7 +121,8 @@ body {
 }
 
 .nav-menu {
-    padding: 20px 0;
+    padding-bottom: 24px;
+    margin-bottom: 30px;
     transition: opacity 0.3s ease;
     display: block !important;  /* 强制单列布局，覆盖header.css的flex布局 */
     flex-direction: column !important;
@@ -134,7 +135,7 @@ body {
 }
 
 .nav-section {
-    margin-bottom: 24px;
+    margin-bottom: 5px;
     padding: 0;
     display: block;  /* 确保分组也是块级元素 */
 }
@@ -159,7 +160,7 @@ body {
 
 .nav-item {
     display: block !important;  /* 强制每个菜单项占一行 */
-    padding: 12px 20px;
+    padding: 5px 20px 5px 20px;
     color: var(--text-color);
     text-decoration: none;
     transition: all 0.2s;
@@ -171,12 +172,23 @@ body {
     width: 100%;  /* 确保宽度100% */
 }
 
+.header {
+    flex: 1;
+    margin-left: 280px;
+
+    padding: 24px;
+    transition: margin-left 0.3s ease;
+    min-width: 0;
+}
+
+
 /* 主内容区 */
 .main-content {
     flex: 1;
     margin-left: 280px;
+    margin-bottom: 60px;
     padding: 24px;
-    padding-bottom: 80px;  /* 为footer留出空间 */
+    padding-top: 80px;  /* 为footer留出空间 */
     transition: margin-left 0.3s ease;
     min-width: 0;
 }
@@ -299,12 +311,17 @@ body {
 .table-container {
     background: white;
     border-radius: 8px;
-    overflow: hidden;
+    /* 当表格宽于容器时启用横向滚动 */
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border-color);
 }
 
 .data-table {
     width: 100%;
+    /* 当列较多时提供最低宽度，超过容器时出现横向滚动 */
+    min-width: 720px; /* 可根据列数调整 */
     border-collapse: collapse;
 }
 
@@ -470,7 +487,7 @@ body {
     transition: left 0.3s ease;
 }
 
-.main-content.sidebar-collapsed + .footer {
+.main-content.sidebar-collapsed + .footer + .header{
     left: 60px;
 }
 
@@ -485,6 +502,10 @@ body {
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
+    }
+
+    .header {
+        left: 0;
     }
 
     .main-content {

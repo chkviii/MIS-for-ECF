@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Volunteer Portal</title>
+    <link rel="stylesheet" href="/static/css/erp-management.css">
+    <style>
+        .container { max-width: 1100px; margin: 40px auto; padding: 20px; }
+        .project-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .project { padding: 12px; border: 1px solid #e6e6e6; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <header class="header"><h2>Volunteer Portal</h2></header>
+    <div class="container">
+        <div style="margin-bottom:12px;"><button onclick="logoutSimple()" class="btn">Logout</button></div>
+
+        <section>
+            <h3>Available Projects</h3>
+            <div id="projects" class="project-list"></div>
+        </section>
+
+        <section style="margin-top:24px;">
+            <h3>Your Volunteer History</h3>
+            <div id="history"></div>
+            <div id="total-hours" style="margin-top:8px;font-weight:600;"></div>
+        </section>
+    </div>
+
+    <script type="module" src="/static/js/site-api.js"></script>
+    <script type="module" src="/static/js/volunteer.js"></script>
+</body>
+</html>
