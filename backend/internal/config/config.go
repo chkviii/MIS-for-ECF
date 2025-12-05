@@ -1,0 +1,49 @@
+package config
+
+import (
+	"fmt"
+	"path/filepath"
+
+	"github.com/spf13/viper"
+)
+
+// Config holds the configuration for the application.
+type Config struct {
+	Port        string `mapstructure:"PORT"`
+	Static_Path string `mapstructure:"STATIC_PATH"`
+	Html_Path   string `mapstructure:"HTML_PATH"`
+	DB_Path     string `mapstructure:"DB_PATH"`
+	Encrypt_Seed string `mapstructure:"ENCRYPT_SEED"`
+	//JWTSecret string `mapstructure:"JWT_SECRET"`
+}
+
+var GlobalConfig *Config
+
+func Load() *Config {
+
+	// Set default values
+	viper.SetDefault("PORT", ":33031")
+
+	// Set default paths relative to the bin directory (go up 2 levels to project root)
+	viper.SetDefault("STATIC_PATH", filepath.Join("..", "..", "frontend", "static"))
+	viper.SetDefault("HTML_PATH", filepath.Join("..", "..", "frontend", "templates"))
+	viper.SetDefault("DB_PATH", filepath.Join("..", "data", "erp.db"))
+	viper.SetDefault("ENCRYPT_SEED", "This is a random seed: ahdgcv-ajweory943gb;caP.'CK[QW]")
+	//viper.SetDefault("JWT_SECRET", "your-secret-key")
+
+	//viper.AutomaticEnv()
+	viper.SetConfigName(".env")
+	viper.SetConfigType("env") // Load environment variables from .env file
+	viper.AddConfigPath(".")   // look for config in the working directory
+
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println("Go: No config file found, using defaults and environment variables")
+	}
+
+	GlobalConfig = &Config{}
+	if err := viper.Unmarshal(GlobalConfig); err != nil {
+		fmt.Println("Go: Unable to decode config:", err)
+	}
+
+	return GlobalConfig
+}

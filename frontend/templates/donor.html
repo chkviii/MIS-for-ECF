@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Donor Portal</title>
+    <link rel="stylesheet" href="/static/css/base/reset.css">
+    <link rel="stylesheet" href="/static/css/base/typography.css">
+    <link rel="stylesheet" href="/static/css/components/buttons.css">
+    <link rel="stylesheet" href="/static/css/components/forms.css">
+    <link rel="stylesheet" href="/static/css/components/modals.css">
+    <link rel="stylesheet" href="/static/css/layout/header.css">
+    <link rel="stylesheet" href="/static/css/erp-management.css">
+    <link rel="stylesheet" href="/static/css/components/chart.css">
+
+    <script src="/static/js/lib/chart.umd.min.js"></script>
+    <script src="/static/js/lib/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+
+
+<body>
+    <div class="erp-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <h2>Donor Dashboard</h2>
+                </div>
+                <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
+                    <span class="toggle-icon">«</span>
+                </button>
+            </div>
+            <nav class="nav-menu">
+                
+                <div class="nav-section">
+                    <h3>Dashboard</h3>
+                    <a href="#" id="dashboardnav" class="nav-item" >My Dashboard</a>
+
+                </div>
+
+                <div class="nav-section">
+                    <h3>Donation</h3>
+                    <a href="#" id="donationsnav" class="nav-item" data-entity="donations">My Donations</a>
+                    <a href="#" id="makedon" class="nav-item" > New donation </a>
+                </div>
+
+            </nav>
+        </aside>
+
+        <!-- Header -->
+        <header class="header">
+                <h2 id="page-title">Elderly Care Foundation</h2>
+        </header>
+
+
+
+        <!-- Main Content Area -->
+        <main class="main-content" id="main-content">
+
+            <!-- chart section -->
+
+            <section class="chart-section" id="chart-section">
+                <!-- chart content will be loaded here -->
+                <div class="topbar">
+                    <div class="search-card">
+                        <div class="search-controls">
+                            <input id="startDate" type="date" />
+                            <input id="endDate" type="date" />
+                            <select id="chartType">
+                                <option value="line">Line (By Date)</option>
+                                <option value="pie">Pie (By Project)</option>
+                            </select>
+                            <button id="applyBtn" class="btn btn-primary">Update</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="card metric">
+                        <h3>Total</h3>
+                        <p id="metricTotal">—</p>
+                    </div>
+                    <div class="card metric">
+                        <h3>Average</h3>
+                        <p id="average">—</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </section>
+
+            <section id="details-section">
+                <!-- Details content will be loaded here -->
+                <div class="topbar">
+                    <div class="search-card">
+                        <div class="search-controls">
+                            <input id="dstartDate" type="date" />
+                            <input id="dendDate" type="date" />
+                            <select id="dproject">
+                                <option value="0">All Projects</option>
+                            </select>
+                            <button id="dapplyBtn" class="btn btn-primary">Update</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Data Table -->
+                <div class="table-container">
+                    <table class="data-table" id="donation-details-table">
+                        <thead id="table-head">
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Project</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Dynamically generated data rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="new-donation-section">
+                <!-- New Donation Form will be loaded here -->
+                <div class="card">
+                    <h3>Make a New Donation (TODO)</h3>
+                    <form id="donation-form">
+                        <div class="form-group">
+                            <label for="project">Select Project:</label>
+                            <select id="project" name="project" required>
+                                <!-- Dynamically populated project options -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">Donation Amount:</label>
+                            <input type="number" id="amount" name="amount" min="1" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Donation</button>
+                    </form>
+                </div>
+            </section>
+
+            </main>
+            
+
+
+
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>2025@White Water</p>
+        </footer>
+    </div>
+
+    <!-- Toast Message -->
+    <div class="toast" id="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <script type="module" src="/static/js/site-api.js"></script>
+    <script type="module" src="/static/js/donor.js"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Employee Dashboard</title>
+    <link rel="stylesheet" href="/static/css/base/reset.css">
+    <link rel="stylesheet" href="/static/css/base/typography.css">
+    <link rel="stylesheet" href="/static/css/components/buttons.css">
+    <link rel="stylesheet" href="/static/css/components/forms.css">
+    <link rel="stylesheet" href="/static/css/components/modals.css">
+    <link rel="stylesheet" href="/static/css/layout/header.css">
+    <link rel="stylesheet" href="/static/css/erp-management.css">
+    <link rel="stylesheet" href="/static/css/components/chart.css">
+</head>
+
+<body>
+    <div class="erp-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <h2>ERP</h2>
+                </div>
+                <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
+                    <span class="toggle-icon">«</span>
+                </button>
+            </div>
+            <nav class="nav-menu">
+
+                <div class="nav-section">
+                    <h3>Home Page</h3>
+                    <a href="/employee" class="nav-item">Home</a>
+                </div>
+
+                <div class="nav-section" id="nav-management-section">
+                    <h3>Management</h3>
+                    <a href="/erp-management" class="nav-item" target="_blank">DBMS</a>
+                    <a href="/sysadmin" class="nav-item">System Admin</a>
+                    <!-- Internal projects, added by js-->
+                <div>
+
+                <div class="nav-section" id="nav-projects-section">
+                    <h3>Projects</h3>
+                    <a href="/employee" class="nav-item" data-entity="projects">All Projects</a>
+                    <!-- General projects, added by js-->
+                </div>
+
+                <div class="nav-section" id="nav-reports-section">
+                    <h3>Reports</h3>
+                    <a href="#" class="nav-item" data-report="fund">Fund Allocation Summary</a>
+                    <a href="#" class="nav-item" data-report="donations">Donation Trends</a>
+                    <a href="#" class="nav-item" data-report="expenses">Expenses Analysis</a>        
+                    <!-- Reports, added by js-->
+                </div>
+                
+
+            </nav>
+        </aside>
+
+        <header class="header">
+            <h2 id="page-title">Employee Dashboard</h2>
+        </header>
+
+        <main class="main-content" id="main-content">
+            <section id="fallback-section">
+                <h3>TODO</h3>
+                <p>Explore other sections in the sidebar.</p>
+
+            </section>
+            <section id="report-container" style="margin-top:24px;">
+                <!-- Report content will be loaded here -->
+                <div class="topbar">
+                    <div class="search-card">
+                        <div class="search-controls">
+                            <input id="startDate" type="date" />
+                            <input id="endDate" type="date" />
+                            <select id="chartType">
+                                <option value="line">Line (By Date)</option>
+                                <option value="pie">Pie (By Project)</option>
+                            </select>
+                            <button id="applyBtn" class="btn btn-primary">Update</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="card metric">
+                        <h3>Total</h3>
+                        <p id="metricTotal">—</p>
+                    </div>
+                    <div class="card metric">
+                        <h3>Average</h3>
+                        <p id="average">—</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </section>
+            
+
+        </main>
+
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>2025@White Water</p>
+        </footer>
+
+    </div>
+
+    <!-- Toast Message -->
+    <div class="toast" id="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <script type="module" src="/static/js/site-api.js"></script>
+    <script src="/static/js/employee-dashboard.js"></script>
+    
+</body>
+</html>

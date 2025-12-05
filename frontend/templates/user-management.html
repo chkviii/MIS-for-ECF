@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Management System</title>
+    <link rel="stylesheet" href="/static/css/base/reset.css">
+    <link rel="stylesheet" href="/static/css/base/typography.css">
+    <link rel="stylesheet" href="/static/css/components/buttons.css">
+    <link rel="stylesheet" href="/static/css/components/forms.css">
+    <link rel="stylesheet" href="/static/css/components/modals.css">
+    <link rel="stylesheet" href="/static/css/layout/header.css">
+    <link rel="stylesheet" href="/static/css/erp-management.css">
+</head>
+<body>
+    <div class="erp-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <h2>Admin Console</h2>
+                </div>
+                <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
+                    <span class="toggle-icon">«</span>
+                </button>
+            </div>
+            <nav class="nav-menu">
+                
+                <div class="nav-section">
+                    <h3>Dashboard</h3>
+                    <a href="/employee" class="nav-item" >My Dashboard</a>
+
+                </div>
+
+                <!-- Financial Management -->
+                <div class="nav-section">
+                    <h3>Admin</h3>
+                    <a href="#" class="nav-item" data-entity="users">System Admin</a>
+                </div>
+
+            </nav>
+        </aside>
+
+        <!-- Header -->
+        <header class="header">
+            <h2 id="page-title" init="users">System Admin</h2>
+            <!-- User Info -->
+            <!-- <div class="user-info" id="user-info">
+                <p id="user-display">Loading...</p>
+                <button class="btn btn-secondary btn-sm" id="btn-logout">Logout</button>
+            </div> -->
+        </header>
+
+
+
+        <!-- Main Content Area -->
+        <main class="main-content" id="main-content">
+            <!-- Top Toolbar -->
+
+            <!-- Search Filter Section -->
+            <div class="filter-section" style="display:none">
+                <div class="search-controls" id="search-controls">
+                    <!-- Dynamically generated search boxes -->
+                </div>
+                <button class="btn btn-secondary" id="btn-search">Search</button>
+                <button class="btn btn-secondary" id="btn-reset">Reset</button>
+            </div>
+
+            <div class="toolbar" style="display:none">
+                <button class="btn btn-primary" id="btn-add">
+                    <span>+ Add New</span>
+                </button>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-container">
+                <table class="data-table" id="data-table">
+                    <thead id="table-head">
+                        <!-- Dynamically generated table headers -->
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Dynamically generated data rows -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <span id="data-count">Total: 0 records</span>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>2025@White Water</p>
+        </footer>
+    </div>
+
+    <!-- Edit/Add Modal -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Edit</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-form">
+                    <!-- Dynamically generated form fields -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-cancel">Cancel</button>
+                <button class="btn btn-primary" id="btn-save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Message -->
+    <div class="toast" id="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <script type="module" src="/static/js/site-api.js"></script>
+    <script type="module" src="/static/js/erp-management.js"></script>
+</body>
+</html>
