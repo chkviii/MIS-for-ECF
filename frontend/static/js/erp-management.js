@@ -1,93 +1,24 @@
 // ERP Management System JavaScript
-const API_BASE_URL = '/api/v1';
+const API_BASE_URL = '/api/v1/dbms';
 
-// API Helper function - automatically add Authorization header
-async function apiRequest(url, options = {}) {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-        window.location.href = '/login';
-        throw new Error('No authentication token found');
-    }
-    
-    // Set default headers
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers
-    };
-    
-    // Merge options
-    const requestOptions = {
-        ...options,
-        headers
-    };
-    
-    try {
-        const response = await fetch(url, requestOptions);
-        
-        // If unauthorized, redirect to login
-        if (response.status === 401) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('profile');
-            window.location.href = '/login';
-            throw new Error('Authentication failed');
-        }
-        
-        return response;
-    } catch (error) {
-        throw error;
-    }
-}
+import { apiRequest, showToast } from '/static/js/site-api.js';
 
-// Check if user is logged in
-function checkAuth() {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    
-    if (!token || !user) {
-        window.location.href = '/login';
-        return false;
-    }
-    return true;
-}
-
-// Logout function
-function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('profile');
-    window.location.href = '/login';
-}
 
 // Add logout button event on page load
 document.addEventListener('DOMContentLoaded', async function() {
-    // Check authentication
-    checkAuth();
 
     // Ensure entity config is loaded before initializing UI that depends on it
     await ensureEntityConfig();
 
-    // Add logout button to header if it exists
-    const header = document.querySelector('.header');
-    if (header) {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const profile = JSON.parse(localStorage.getItem('profile') || '{}');
+    // Initialize navigation and table view
+    initTableView();
 
-        const userInfo = document.createElement('div');
-        userInfo.className = 'user-info';
-        userInfo.style.cssText = 'position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 15px;';
-        userInfo.innerHTML = `
-            <span style="color: #666;">Welcome, ${profile.first_name || user.username}</span>
-            <button onclick="logout()" class="btn btn-small btn-secondary">Logout</button>
-        `;
-        header.appendChild(userInfo);
+    const headertitle = document.getElementById('page-title');
+    const initEntity = headertitle && headertitle.getAttribute('init');
+    if (initEntity) {
+        loadEntity(initEntity);
     }
 
-    initNavigation();
-    initSidebarToggle();
-    loadEntity('projects');
 });
 
 // Lazy-load entity config from JSON when needed (no global/window binding)
@@ -107,7 +38,7 @@ async function ensureEntityConfig() {
 }
 
 // Global State
-let currentEntity = 'projects';
+let currentEntity = '';
 let currentData = [];
 let editingItem = null;
 // Currently-loaded entity config (defensive accessor stores last loaded config)
@@ -128,18 +59,20 @@ async function getEntityConfig(entity) {
 // (initial DOMContentLoaded handler already declared earlier; avoid duplicate initialization)
 
 // Navigation Initialization
-function initNavigation() {
+function initTableView() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            const entity = this.dataset.entity;
-            
-            navItems.forEach(nav => nav.classList.remove('active'));
-            this.classList.add('active');
-            
-            loadEntity(entity);
-        });
+        if (item.getAttribute('data-entity') !== null) {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const entity = this.dataset.entity;
+                
+                navItems.forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+                
+                loadEntity(entity);
+            });
+        }
     });
 
     // Button Events
@@ -151,75 +84,6 @@ function initNavigation() {
     document.getElementById('modal-close').addEventListener('click', () => closeModal());
 }
 
-// Sidebar Toggle Initialization
-function initSidebarToggle() {
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('sidebar-toggle');
-    
-    // Load saved state from localStorage
-    const sidebarState = localStorage.getItem('sidebarState') || 'normal';
-    applySidebarState(sidebarState);
-    
-    // Initial adjustment
-    updateMainContentMargin();
-    
-    toggleBtn.addEventListener('click', function() {
-        let currentState = 'normal';
-        
-        // Toggle between normal and collapsed only
-        if (sidebar.classList.contains('collapsed')) {
-            currentState = 'normal';
-        } else {
-            currentState = 'collapsed';
-        }
-        
-        applySidebarState(currentState);
-        localStorage.setItem('sidebarState', currentState);
-    });
-    
-    // Update main content margin when sidebar width changes
-    const resizeObserver = new ResizeObserver(entries => {
-        updateMainContentMargin();
-    });
-    
-    resizeObserver.observe(sidebar);
-    
-    // Also update on window resize
-    window.addEventListener('resize', () => {
-        updateMainContentMargin();
-    });
-}
-
-// Update main content margin based on sidebar width
-function updateMainContentMargin() {
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
-    const header = document.querySelector('.header');
-    const sidebarWidth = sidebar.offsetWidth;
-    mainContent.style.marginLeft = `${sidebarWidth}px`;
-    header.style.marginLeft = `${sidebarWidth}px`;
-}
-
-// Apply Sidebar State
-function applySidebarState(state) {
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
-    
-    // Remove all state classes
-    sidebar.classList.remove('collapsed');
-    mainContent.classList.remove('sidebar-collapsed');
-    
-    if (state === 'collapsed') {
-        sidebar.classList.add('collapsed');
-        mainContent.classList.add('sidebar-collapsed');
-    }
-    
-    // Wait for CSS transition to complete, then update margin
-    setTimeout(() => {
-        updateMainContentMargin();
-    }, 50);
-}
-
 // Load Entity Data
 async function loadEntity(entity) {
     currentEntity = entity;
@@ -228,7 +92,9 @@ async function loadEntity(entity) {
     document.getElementById('page-title').textContent = currentConfig.title || entity;
 
     // Generate Search Controls
-    generateSearchControls(currentConfig);
+    if (document.getElementById('search-controls')) {
+        generateSearchControls(currentConfig);
+    }
 
     // Generate Table
     generateTable(currentConfig);
@@ -350,10 +216,13 @@ function renderTable() {
 
         actionTd.innerHTML = `
             <div class="action-buttons">
-                <button class="btn btn-small btn-secondary" onclick="editItem(${item.id})">Edit</button>
-                <button class="btn btn-small btn-danger" onclick="deleteItem(${item.id})">Delete</button>
+                <button class="btn btn-small btn-secondary" id="edit${item.id}">Edit</button>
+                <button class="btn btn-small btn-danger" id="delete${item.id}">Delete</button>
             </div>
         `;
+        actionTd.querySelector(`#edit${item.id}`).addEventListener('click', () => editItem(item.id));
+        actionTd.querySelector(`#delete${item.id}`).addEventListener('click', () => deleteItem(item.id));
+
         row.appendChild(actionTd);
 
         config.fields.filter(f => f.showInTable).forEach(field => {
@@ -416,6 +285,9 @@ async function searchData() {
 
         const response = await apiRequest(`${API_BASE_URL}/${config.endpoint}/search?` + qs.toString());
         const result = await response.json();
+        if (!response.ok) {
+            throw new Error('Search request failed: ' + result.error);
+        }
         
         currentData = result.data || [];
         renderTable();
@@ -608,7 +480,7 @@ function formatDateForInput(value) {
 }
 
 // Edit Item
-function editItem(id) {
+export function editItem(id) {
     const item = currentData.find(i => i.id === id);
     if (item) {
         openModal(item);
@@ -616,7 +488,7 @@ function editItem(id) {
 }
 
 // Delete Item
-async function deleteItem(id) {
+export async function deleteItem(id) {
     if (!confirm('Are you sure you want to delete this record?')) return;
     
     try {
@@ -639,14 +511,14 @@ async function deleteItem(id) {
 }
 
 // Show Toast
-function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toast-message');
+// function showToast(message, type = 'success') {
+//     const toast = document.getElementById('toast');
+//     const toastMessage = document.getElementById('toast-message');
     
-    toastMessage.textContent = message;
-    toast.className = `toast ${type} show`;
+//     toastMessage.textContent = message;
+//     toast.className = `toast ${type} show`;
     
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
-}
+//     setTimeout(() => {
+//         toast.classList.remove('show');
+//     }, 3000);
+// }

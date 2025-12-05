@@ -31,7 +31,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		})
 		return
 	}
+
 	log.Println("Parsed registration request:", req)
+
 	resp, err := h.authService.Register(&req)
 	log.Println("Registration response:", resp, "Error:", err)
 	if err != nil {

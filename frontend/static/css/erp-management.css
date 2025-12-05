@@ -52,6 +52,7 @@ body {
 }
 
 .sidebar-header {
+    height: var(--header-height);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -174,11 +175,12 @@ body {
 
 .header {
     flex: 1;
-    margin-left: 280px;
+    margin-left: 200px;
 
-    padding: 24px;
+    padding: 0px 24px;
     transition: margin-left 0.3s ease;
     min-width: 0;
+    align-content: center;
 }
 
 

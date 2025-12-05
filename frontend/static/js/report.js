@@ -1,17 +1,22 @@
 // report.js - ReportChart class (extracted from inline script)
+import '/static/js/lib/chart.umd.min.js';
+import '/static/js/lib/chartjs-adapter-date-fns.bundle.min.js';
+
 
 class ReportChart{
 
     constructor(opts = {}){
         this.canvasId = opts.canvasId || 'mainChart';
+        this.urlbase = opts.urlbase
+        this.chartID = opts.chartID || 'mainChart';
+        this.chartType = opts.chartType || 'chartType';
         this.startInputId = opts.startInputId || 'startDate';
         this.endInputId = opts.endInputId || 'endDate';
         this.applyBtnId = opts.applyBtnId || 'applyBtn';
-        this.chartTypeId = opts.chartTypeId || 'chartType';
+
         this.metricInputId = opts.metricInputId || 'metricInput';
         this.metricTotalId = opts.metricTotalId || 'metricTotal';
-        this.activeUsersId = opts.activeUsersId || 'activeUsers';
-        this.growthId = opts.growthId || 'growth';
+        this.averageId = opts.averageId || 'average';
 
         this._ctx = null;
         this._chart = null;
@@ -27,11 +32,10 @@ class ReportChart{
         this.startInput = document.getElementById(this.startInputId);
         this.endInput = document.getElementById(this.endInputId);
         this.applyBtn = document.getElementById(this.applyBtnId);
-        this.chartType = document.getElementById(this.chartTypeId);
+        this.chartType = document.getElementById(this.chartType);
         this.metricInput = document.getElementById(this.metricInputId);
         this.metricTotal = document.getElementById(this.metricTotalId);
-        this.activeUsers = document.getElementById(this.activeUsersId);
-        this.growth = document.getElementById(this.growthId);
+        this.average = document.getElementById(this.averageId);
 
         if(this.canvas) this._ctx = this.canvas.getContext('2d');
     }
@@ -56,16 +60,24 @@ class ReportChart{
 
     async update(){
         console.log('Updating report chart...');
+        const urlbase = this.urlbase || '/fin/charts';
+        const chartid = this.chartID
+        const chartType = this.chartType?.value || 'line';
         const metric = this.metricInput?.value?.trim();
         const start = this.startInput?.value;
         const end = this.endInput?.value;
         // if(!metric){ if(!this.metricInput) return; alert('请输入指标'); return; }
         console.log(`Fetching data for metric=${metric}, start=${start}, end=${end}...`);
 
-        const url = `/api/report?metric=${encodeURIComponent(metric)}&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+        const url = `/api/v1${urlbase}/${encodeURIComponent(chartType)}/${chartid}?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
         let data = null;
         try{
-            const res = await fetch(url, {cache:'no-store'});
+            const res = await fetch(url, {
+                cache: 'no-store',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
             if(!res.ok) {
                 console.warn('failed to fetch report data, using sample', res.status);
                 data = this.sampleData(metric, start, end);
@@ -77,20 +89,22 @@ class ReportChart{
             data = this.sampleData(metric, start, end);
         }
 
-        const total = data.total ?? this.aggregateTotalFromSeries(data);
-        if(this.metricTotal) this.metricTotal.textContent = total;
-        if(this.activeUsers) this.activeUsers.textContent = data.activeUsers ?? '—';
-        if(this.growth) this.growth.textContent = data.growth ?? '—';
+        console.log('Report data received:', data);
+        console.log(this.sampleData(metric, start, end));
+
+        if(this.metricTotal) this.metricTotal.textContent = data.total ?? '—';
+
+        if(this.average) this.average.textContent = data.avg ?? '—';
 
         console.log('Rendering chart...');
 
         const type = this.chartType?.value || 'line';
         if(type === 'line'){
             const series = this.normalizeSeries(data);
-            this.renderLine(series, metric);
+            this.renderLine(series, data.title);
         } else {
             const pie = this.normalizePie(data);
-            this.renderPie(pie, metric);
+            this.renderPie(pie, data.title);
         }
 
         console.log('Report chart updated.');
@@ -112,15 +126,15 @@ class ReportChart{
 
     aggregateTotalFromSeries(data){ if(!Array.isArray(data.series)) return '—'; return data.series.flatMap(s => s.points || s.data || []).reduce((acc,p)=>acc + (p.v ?? p.value ?? 0), 0); }
 
-    renderLine(series, metricLabel){
+    renderLine(series, title){
         if(!this._ctx) return;
         const datasets = series.map((s,i)=>({ label: s.name || `Series ${i+1}`, data: (s.points||[]).map(p=>({x: this.parseDate(p.t), y: Number(p.v)||0})), borderColor: this.palette(i), backgroundColor: this.hexToRgba(this.palette(i),0.12), tension:0.25, pointRadius:3, fill:true }));
-        const config = { type:'line', data:{datasets}, options:{ responsive:true, interaction:{mode:'index', intersect:false}, plugins:{legend:{position:'top'}, title:{display:true, text:`${metricLabel} — 时间序列`}}, scales:{ x:{type:'time', time:{unit:'day', tooltipFormat:'yyyy-MM-dd'}, title:{display:true,text:'时间'}}, y:{beginAtZero:true, title:{display:true,text:'数值'}} } } };
+        const config = { type:'line', data:{datasets}, options:{ responsive:true, interaction:{mode:'index', intersect:false}, plugins:{legend:{position:'top'}, title:{display:true, text:`${title}`}}, scales:{ x:{type:'time', time:{unit:'day', tooltipFormat:'yyyy-MM-dd'}, title:{display:true,text:'Date'}}, y:{beginAtZero:true, title:{display:true,text:'Value'}} } } };
         if(this._chart) this._chart.destroy();
         this._chart = new Chart(this._ctx, config);
     }
 
-    renderPie(pieData, metricLabel){ if(!this._ctx) return; const labels = pieData.map(p=>p.label); const values = pieData.map(p=>p.value); const colors = labels.map((_,i)=>this.palette(i)); const config = { type:'pie', data:{labels, datasets:[{data: values, backgroundColor: colors}]}, options:{ responsive:true, plugins:{ legend:{position:'right'}, title:{display:true, text:`${metricLabel} — 区间占比`}, tooltip:{callbacks:{label: ctx => { const val = ctx.parsed; const sum = values.reduce((a,b)=>a+b,0); const pct = sum ? (val/sum*100).toFixed(1)+'%' : '0%'; return `${ctx.label}: ${val} (${pct})`; }}} } } }; if(this._chart) this._chart.destroy(); this._chart = new Chart(this._ctx, config); }
+    renderPie(pieData, title){ if(!this._ctx) return; const labels = pieData.map(p=>p.label); const values = pieData.map(p=>p.value); const colors = labels.map((_,i)=>this.palette(i)); const config = { type:'pie', data:{labels, datasets:[{data: values, backgroundColor: colors}]}, options:{ responsive:true, plugins:{ legend:{position:'right'}, title:{display:true, text:title}, tooltip:{callbacks:{label: ctx => { const val = ctx.parsed; const sum = values.reduce((a,b)=>a+b,0); const pct = sum ? (val/sum*100).toFixed(1)+'%' : '0%'; return `${ctx.label}: ${val} (${pct})`; }}} } } }; if(this._chart) this._chart.destroy(); this._chart = new Chart(this._ctx, config); }
 
     parseDate(v){ if(!v) return null; if(typeof v === 'number') return new Date(v); if(typeof v === 'string') return new Date(v); return v; }
     palette(i){ const colors=['#60a5fa','#f97316','#a78bfa','#06b6d4','#f59e0b','#ef4444','#34d399','#f472b6']; return colors[i%colors.length]; }

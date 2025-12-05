@@ -12,9 +12,6 @@
     <link rel="stylesheet" href="/static/css/layout/header.css">
     <link rel="stylesheet" href="/static/css/erp-management.css">
     <link rel="stylesheet" href="/static/css/components/chart.css">
-
-    <script src="/static/js/lib/chart.umd.min.js"></script>
-    <script src="/static/js/lib/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
 
 <body>
@@ -33,23 +30,26 @@
 
                 <div class="nav-section">
                     <h3>Home Page</h3>
-                    <a href="#" class="nav-item">Home</a>
+                    <a href="/employee" class="nav-item">Home</a>
                 </div>
 
                 <div class="nav-section" id="nav-management-section">
                     <h3>Management</h3>
+                    <a href="/erp-management" class="nav-item" target="_blank">DBMS</a>
+                    <a href="/sysadmin" class="nav-item">System Admin</a>
                     <!-- Internal projects, added by js-->
                 <div>
 
                 <div class="nav-section" id="nav-projects-section">
                     <h3>Projects</h3>
+                    <a href="/employee" class="nav-item" data-entity="projects">All Projects</a>
                     <!-- General projects, added by js-->
                 </div>
 
                 <div class="nav-section" id="nav-reports-section">
                     <h3>Reports</h3>
-                    <a href="#" class="nav-item" data-report="fund">Fund Summary</a>
-                    <a href="#" class="nav-item" data-report="donation">Donation Trends</a>
+                    <a href="#" class="nav-item" data-report="fund">Fund Allocation Summary</a>
+                    <a href="#" class="nav-item" data-report="donations">Donation Trends</a>
                     <a href="#" class="nav-item" data-report="expenses">Expenses Analysis</a>        
                     <!-- Reports, added by js-->
                 </div>
@@ -59,53 +59,44 @@
         </aside>
 
         <header class="header">
-            <h2>Employee Dashboard</h2>
+            <h2 id="page-title">Employee Dashboard</h2>
         </header>
 
         <main class="main-content" id="main-content">
             <section id="fallback-section">
-                <h3>Management Portals</h3>
-                <div class="grid">
-                    <div class="card"><a href="/erp-management">项目管理门户 (ERP)</a></div>
-                    <div class="card"><a href="/erp-management">各类报表门户 (Reports)</a></div>
-                    <div class="card"><a href="/erp-management">数据库管理门户 (DB)</a></div>
-                </div>
+                <h3>TODO</h3>
+                <p>Explore other sections in the sidebar.</p>
+
             </section>
             <section id="report-container" style="margin-top:24px;">
                 <!-- Report content will be loaded here -->
-                    <div class="topbar">
-                    <div class="search card" style="padding:8px 12px">
-                        <input id="metricInput" type="text" placeholder="指标，例如 sales 或 productId" value="sales" />
-                        <div class="controls">
+                <div class="topbar">
+                    <div class="search-card">
+                        <div class="search-controls">
                             <input id="startDate" type="date" />
                             <input id="endDate" type="date" />
                             <select id="chartType">
-                                <option value="line">折线图（时间）</option>
-                                <option value="pie">饼图（占比）</option>
+                                <option value="line">Line (By Date)</option>
+                                <option value="pie">Pie (By Project)</option>
                             </select>
-                            <button id="applyBtn" style="background:var(--accent);border:0;padding:8px 12px;border-radius:8px;color:#041027;cursor:pointer">更新</button>
+                            <button id="applyBtn" class="btn btn-primary">Update</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid">
                     <div class="card metric">
-                        <h3>总收入</h3>
+                        <h3>Total</h3>
                         <p id="metricTotal">—</p>
                     </div>
                     <div class="card metric">
-                        <h3>活动用户</h3>
-                        <p id="activeUsers">—</p>
-                    </div>
-                    <div class="card metric">
-                        <h3>本周期增长</h3>
-                        <p id="growth">—</p>
+                        <h3>Average</h3>
+                        <p id="average">—</p>
                     </div>
                 </div>
 
                 <div class="card">
                     <canvas id="mainChart"></canvas>
-                    <div class="footer">提示：调整指标和日期后点击 更新。数据来自 /api/report?metric=...&start=...&end=...</div>
                 </div>
             </section>
             
@@ -125,54 +116,7 @@
         <span id="toast-message"></span>
     </div>
 
-    <script>
-        // Check authentication on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const token = localStorage.getItem('token');
-            const userInfo = localStorage.getItem('user');
-            
-            // if (!token) {
-            //     // No token, redirect to login
-            //     window.location.href = '/login';
-            //     return;
-            // }
-            
-            // Display user info
-            if (userInfo) {
-                try {
-                    const user = JSON.parse(userInfo);
-                    const userDisplay = document.getElementById('user-display');
-                    if (userDisplay) {
-                        userDisplay.textContent = `${user.username} (${user.user_type})`;
-                    }
-                } catch (e) {
-                    console.error('Failed to parse user info:', e);
-                }
-            }
-            
-            // Logout handler
-            const logoutBtn = document.getElementById('btn-logout');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    window.location.href = '/login';
-                });
-            }
-        });
-        
-        // // Add token to all API requests
-        // const originalFetch = window.fetch;
-        // window.fetch = function() {
-        //     const token = localStorage.getItem('token');
-        //     if (token && arguments[0].startsWith('/api/')) {
-        //         arguments[1] = arguments[1] || {};
-        //         arguments[1].headers = arguments[1].headers || {};
-        //         arguments[1].headers['Authorization'] = `Bearer ${token}`;
-        //     }
-        //     return originalFetch.apply(this, arguments);
-        // };
-    </script>
+    <script type="module" src="/static/js/site-api.js"></script>
     <script src="/static/js/employee-dashboard.js"></script>
     
 </body>

@@ -7,6 +7,15 @@ import (
 
 // ==================== Service Definitions ====================
 
+// UserService 用户服务
+type UserService struct {
+	repo *repo.UserRepository
+}
+
+func NewUserService(userRepo *repo.UserRepository) *UserService {
+	return &UserService{repo: userRepo}
+}
+
 // ProjectService 项目服务
 type ProjectService struct {
 	repo *repo.ProjectRepository
@@ -203,6 +212,30 @@ type ScheduleService struct {
 
 func NewScheduleService(scheduleRepo *repo.ScheduleRepository) *ScheduleService {
 	return &ScheduleService{repo: scheduleRepo}
+}
+
+// ==================== User Service Methods ====================
+func (s *UserService) Create(user *models.User) error {
+	return s.repo.Create(user)
+}
+
+func (s *UserService) GetAll() ([]models.User, error) {
+	return s.repo.GetAll()
+}
+
+func (s *UserService) Search(query map[string]interface{}) ([]models.User, error) {
+	return s.repo.Search(query)
+}
+
+func (s *UserService) Filter(query map[string]interface{}, numberRange map[string][]interface{}, dateRange map[string][]string) ([]models.User, error) {
+	return s.repo.Filter(query, numberRange, dateRange)
+}
+
+func (s *UserService) Update(user *models.User) error {
+	return s.repo.Update(user)
+}
+func (s *UserService) Delete(id uint) error {
+	return s.repo.Delete(id)
 }
 
 // ==================== Project Service Methods ====================

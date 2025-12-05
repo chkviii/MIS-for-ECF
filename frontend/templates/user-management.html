@@ -18,7 +18,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <h2>DBMS</h2>
+                    <h2>Admin Console</h2>
                 </div>
                 <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
                     <span class="toggle-icon">«</span>
@@ -26,54 +26,24 @@
             </div>
             <nav class="nav-menu">
                 
-
-                <!-- Core Management -->
                 <div class="nav-section">
-                    <h3>Core Management</h3>
-                    <a href="#" class="nav-item" data-entity="projects">Projects</a>
-                    <a href="#" class="nav-item" data-entity="donors">Donors</a>
-                    <a href="#" class="nav-item" data-entity="donations">Donations</a>
-                    <a href="#" class="nav-item" data-entity="volunteers">Volunteers</a>
-                    <a href="#" class="nav-item" data-entity="employees">Employees</a>
-                    <a href="#" class="nav-item" data-entity="locations">Locations</a>
+                    <h3>Dashboard</h3>
+                    <a href="/employee" class="nav-item" >My Dashboard</a>
+
                 </div>
 
                 <!-- Financial Management -->
                 <div class="nav-section">
-                    <h3>Financial</h3>
-                    <a href="#" class="nav-item" data-entity="funds">Funds</a>
-                    <a href="#" class="nav-item" data-entity="expenses">Expenses</a>
-                    <a href="#" class="nav-item" data-entity="transactions">Transactions</a>
-                    <a href="#" class="nav-item" data-entity="purchases">Purchases</a>
-                    <a href="#" class="nav-item" data-entity="payrolls">Payrolls</a>
+                    <h3>Admin</h3>
+                    <a href="#" class="nav-item" data-entity="users">System Admin</a>
                 </div>
 
-                <!-- Inventory Management -->
-                <div class="nav-section">
-                    <h3>Inventory</h3>
-                    <a href="#" class="nav-item" data-entity="inventory">Inventory</a>
-                    <a href="#" class="nav-item" data-entity="gift-types">Gift Types</a>
-                    <a href="#" class="nav-item" data-entity="gifts">Gifts</a>
-                    <a href="#" class="nav-item" data-entity="inventory-transactions">Inv. Transactions</a>
-                    <a href="#" class="nav-item" data-entity="deliveries">Deliveries</a>
-                </div>
-
-                <!-- Relationship Management -->
-                <div class="nav-section">
-                    <h3>Relationships</h3>
-                    <a href="#" class="nav-item" data-entity="volunteer-projects">Volunteer-Projects</a>
-                    <a href="#" class="nav-item" data-entity="employee-projects">Employee-Projects</a>
-                    <a href="#" class="nav-item" data-entity="fund-projects">Fund-Projects</a>
-                    <a href="#" class="nav-item" data-entity="donation-inventory">Donation Inventory</a>
-                    <a href="#" class="nav-item" data-entity="delivery-inventory">Delivery Inventory</a>
-                    <a href="#" class="nav-item" data-entity="schedules">Schedules</a>
-                </div>
             </nav>
         </aside>
 
         <!-- Header -->
         <header class="header">
-            <h2 id="page-title" init="projects">Choose a sidebar item please</h2>
+            <h2 id="page-title" init="users">System Admin</h2>
             <!-- User Info -->
             <!-- <div class="user-info" id="user-info">
                 <p id="user-display">Loading...</p>
@@ -87,10 +57,8 @@
         <main class="main-content" id="main-content">
             <!-- Top Toolbar -->
 
-
-
             <!-- Search Filter Section -->
-            <div class="filter-section">
+            <div class="filter-section" style="display:none">
                 <div class="search-controls" id="search-controls">
                     <!-- Dynamically generated search boxes -->
                 </div>
@@ -98,14 +66,10 @@
                 <button class="btn btn-secondary" id="btn-reset">Reset</button>
             </div>
 
-            <div class="toolbar">
+            <div class="toolbar" style="display:none">
                 <button class="btn btn-primary" id="btn-add">
                     <span>+ Add New</span>
                 </button>
-                <!-- Pagination -->
-                <div class="pagination">
-                    <h2 id="data-count">Total: 0 records</h2>
-                </div>
             </div>
 
             <!-- Data Table -->
@@ -120,8 +84,10 @@
                 </table>
             </div>
 
-            
-
+            <!-- Pagination -->
+            <div class="pagination">
+                <span id="data-count">Total: 0 records</span>
+            </div>
         </main>
 
         <!-- Footer -->

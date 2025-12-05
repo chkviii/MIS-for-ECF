@@ -4,28 +4,72 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Volunteer Portal</title>
+    <link rel="stylesheet" href="/static/css/base/reset.css">
+    <link rel="stylesheet" href="/static/css/base/typography.css">
+    <link rel="stylesheet" href="/static/css/components/buttons.css">
+    <link rel="stylesheet" href="/static/css/components/forms.css">
+    <link rel="stylesheet" href="/static/css/components/modals.css">
+    <link rel="stylesheet" href="/static/css/layout/header.css">
     <link rel="stylesheet" href="/static/css/erp-management.css">
-    <style>
-        .container { max-width: 1100px; margin: 40px auto; padding: 20px; }
-        .project-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        .project { padding: 12px; border: 1px solid #e6e6e6; border-radius: 6px; }
-    </style>
+    <link rel="stylesheet" href="/static/css/components/chart.css">
 </head>
+
+
 <body>
-    <header class="header"><h2>Volunteer Portal</h2></header>
-    <div class="container">
-        <div style="margin-bottom:12px;"><button onclick="logoutSimple()" class="btn">Logout</button></div>
+    <div class="erp-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <h2>Volunteer Dashboard</h2>
+                </div>
+                <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
+                    <span class="toggle-icon">«</span>
+                </button>
+            </div>
+            <nav class="nav-menu">
+                
+                <div class="nav-section">
+                    <h3>Dashboard</h3>
+                    <a href="/volunteer" class="nav-item" >My Dashboard</a>
 
-        <section>
-            <h3>Available Projects</h3>
-            <div id="projects" class="project-list"></div>
-        </section>
+                </div>
 
-        <section style="margin-top:24px;">
-            <h3>Your Volunteer History</h3>
-            <div id="history"></div>
-            <div id="total-hours" style="margin-top:8px;font-weight:600;"></div>
-        </section>
+                <div class="nav-section">
+                    <h3>Voluntary</h3>
+                    <a href="#" class="nav-item" data-entity="volunteer-projects">Volunteer History</a>
+                    <a href="#" class="nav-item" id="makedon"> Sign up </a>
+                </div>
+
+            </nav>
+        </aside>
+
+        <!-- Header -->
+        <header class="header">
+            <h2 id="page-title">Elderly Care Foundation</h2>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content" id="main-content">
+            <section class="container">
+                <h3>TODO</h3>
+                <p>Volunteer portal under construction. Login as employee or donor please.</p>
+            </section>
+        </main>
+            
+
+
+
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>2025@White Water</p>
+        </footer>
+    </div>
+
+    <!-- Toast Message -->
+    <div class="toast" id="toast">
+        <span id="toast-message"></span>
     </div>
 
     <script type="module" src="/static/js/site-api.js"></script>

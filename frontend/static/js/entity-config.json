@@ -1,4 +1,18 @@
 {
+"users": {
+"title": "User Management",
+"endpoint": "users",
+"fields": [
+{ "name": "id", "label": "ID", "type": "number", "readonly": true, "showInTable": true, "showInForm": false, "searchable": true },
+{ "name": "username", "label": "Username", "type": "text", "required": true, "showInTable": true, "searchable": true },
+{ "name": "password_hash", "label": "Password Hash", "type": "text", "required": true, "showInTable": true, "searchable": false },
+{ "name": "user_type", "label": "User Type", "type": "select",  "options": ["donor", "volunteer", "employee"],"showInTable": true,  "searchable": true },
+{ "name": "status", "label": "Status", "type": "select",  "options": ["active", "inactive", "pending"],"showInTable": true,  "searchable": true },
+{ "name": "last_login", "label": "Last Login", "type": "date", "showInTable": true, "searchable": true },
+{ "name": "created_at",  "label":  "Created At",  "type":  "date",  "showInTable":  true },
+{ "name":  "updated_at",  "label":  "Updated At",  "type":  "date",  "showInTable":  true }
+]
+},
 "projects": {
 "title": "Project Management",
 "endpoint": "projects",

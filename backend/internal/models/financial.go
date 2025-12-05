@@ -39,9 +39,9 @@ type Donation struct {
 	UpdatedAt     time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 
 	// 关联
-	Donor       *Donor       `json:"donor,omitempty" gorm:"foreignKey:DonorID"`
-	Project     *Project     `json:"project,omitempty" gorm:"foreignKey:ProjectID"`
-	Transaction *Transaction `json:"transaction,omitempty" gorm:"foreignKey:TransactionID"`
+	Donor       *Donor       `json:"donor,omitempty" gorm:"foreignKey:DonorID;references:ID"`
+	Project     *Project     `json:"project,omitempty" gorm:"foreignKey:ProjectID;references:ID"`
+	Transaction *Transaction `json:"transaction,omitempty" gorm:"foreignKey:TransactionID;references:ID"`
 	Gifts       []Gift       `json:"gifts,omitempty"`
 }
 

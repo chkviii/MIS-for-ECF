@@ -59,11 +59,16 @@ func main() {
 	deliveryInventoryRepo := repo.NewDeliveryInventoryRepository(db)
 	scheduleRepo := repo.NewScheduleRepository(db)
 
+	chartRepo := repo.NewChartRepository(db)
+
 	// 初始化 Services
 	// AuthService 依赖多个 Repository (userRepo, employeeRepo, volunteerRepo, donorRepo)
 	authService := services.NewAuthService(userRepo, employeeRepo, volunteerRepo, donorRepo)
+	chartService := services.NewChartService(chartRepo)
+	donService := services.NewDonService(donorRepo, projectRepo, employeeProjectRepo)
 
 	// 其他 Services 现在都依赖各自的 Repository
+	userService := services.NewUserService(userRepo)
 	projectService := services.NewProjectService(projectRepo)
 	donorService := services.NewDonorService(donorRepo)
 	donationService := services.NewDonationService(donationRepo)
@@ -89,7 +94,11 @@ func main() {
 
 	// 初始化 Handlers
 	authHandler := handlers.NewAuthHandler(authService)
+	chartHandler := handlers.NewChartHandler(chartService)
+	donHandler := handlers.NewDonHandler(donService)
+
 	erpHandler := handlers.NewERPHandler(
+		userService,
 		projectService,
 		donorService,
 		donationService,
@@ -116,26 +125,26 @@ func main() {
 
 	// Repositories 现在被使用了（通过 authService）
 	// 其他 Repositories 可以在重构其他 Services 时使用
-	_ = projectRepo
-	_ = donorRepo
-	_ = donationRepo
-	_ = locationRepo
-	_ = fundRepo
-	_ = expenseRepo
-	_ = transactionRepo
-	_ = purchaseRepo
-	_ = payrollRepo
-	_ = inventoryRepo
-	_ = giftTypeRepo
-	_ = giftRepo
-	_ = inventoryTransactionRepo
-	_ = deliveryRepo
-	_ = volunteerProjectRepo
-	_ = employeeProjectRepo
-	_ = fundProjectRepo
-	_ = donationInventoryRepo
-	_ = deliveryInventoryRepo
-	_ = scheduleRepo
+	// _ = projectRepo
+	// _ = donorRepo
+	// _ = donationRepo
+	// _ = locationRepo
+	// _ = fundRepo
+	// _ = expenseRepo
+	// _ = transactionRepo
+	// _ = purchaseRepo
+	// _ = payrollRepo
+	// _ = inventoryRepo
+	// _ = giftTypeRepo
+	// _ = giftRepo
+	// _ = inventoryTransactionRepo
+	// _ = deliveryRepo
+	// _ = volunteerProjectRepo
+	// _ = employeeProjectRepo
+	// _ = fundProjectRepo
+	// _ = donationInventoryRepo
+	// _ = deliveryInventoryRepo
+	// _ = scheduleRepo
 
 	// 初始化 Gin 路由
 	r := gin.Default()
@@ -164,6 +173,12 @@ func main() {
 		public.GET("/erp-management", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "erp-management.html", gin.H{
 				"title": "ERP Management System",
+			})
+		})
+
+		public.GET("/sysadmin", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "user-management.html", gin.H{
+				"title": "System Admin",
 			})
 		})
 
@@ -198,169 +213,206 @@ func main() {
 	authenticated := r.Group("/")
 	authenticated.Use(middleware.AuthMiddlewareGin())
 	{
-		// 需要认证的路由已移除（页面路由改为公开）
+		authenticated.POST("/auth/logout", authHandler.Logout)
 	}
 
-	// 需要认证的 API 路由
-	api := r.Group("/api/v1")
-	api.Use(middleware.AuthMiddlewareGin())
+	admin_api := r.Group("/api/v1/dbms/users")
+	admin_api.Use(middleware.AuthMiddlewareGin())
+	admin_api.Use(middleware.AuthVarifyUserType("employee"))
 	{
-		// 认证相关
-		api.POST("/auth/logout", authHandler.Logout)
+		// user management
+		admin_api.POST("/", erpHandler.CreateUser)
+		admin_api.GET("/", erpHandler.GetAllUsers)
+		admin_api.GET("/search", erpHandler.FilterUsers)
+		admin_api.PUT("/:id", erpHandler.UpdateUser)
+		admin_api.DELETE("/:id", erpHandler.DeleteUser)
+	}
+
+	// Financial Charts API for employee dashboard
+	finchart_api := r.Group("/api/v1/fin/charts")
+	finchart_api.Use(middleware.AuthMiddlewareGin())
+	finchart_api.Use(middleware.AuthVarifyUserType("employee"))
+	{
+		finchart_api.GET("/line/fund", chartHandler.FundAllocations)
+		finchart_api.GET("/pie/fund", chartHandler.FundAllocationsByProject)
+		finchart_api.GET("/line/expenses", chartHandler.Expenses)
+		finchart_api.GET("/pie/expenses", chartHandler.ExpensesByProject)
+		finchart_api.GET("/line/donations", chartHandler.Donations)
+		finchart_api.GET("/pie/donations", chartHandler.DonationsByProject)
+
+	}
+
+	//Donation Charts API for donor dashboard
+	don_api := r.Group("/api/v1/donor")
+	don_api.Use(middleware.AuthMiddlewareGin())
+	don_api.Use(middleware.AuthVarifyUserType("donor"))
+	{
+		don_api.GET("/charts/line/donations", chartHandler.DonorDonations)
+		don_api.GET("/charts/pie/donations", chartHandler.DonorDonationsByProject)
+		don_api.GET("/projects", donHandler.GetProjectsByDonor)
+		don_api.GET("/donations", donHandler.GetDonationDetails)
+	}
+
+	// dbms API for employee
+	dbms_api := r.Group("/api/v1/dbms")
+	dbms_api.Use(middleware.AuthMiddlewareGin())
+	dbms_api.Use(middleware.AuthVarifyUserType("employee"))
+
+	{
 
 		// 项目管理
-		api.POST("/projects", erpHandler.CreateProject)
-		api.GET("/projects", erpHandler.GetAllProjects)
-		api.GET("/projects/search", erpHandler.FilterProjects)
-		api.PUT("/projects/:id", erpHandler.UpdateProject)
-		api.DELETE("/projects/:id", erpHandler.DeleteProject)
+		dbms_api.POST("/projects", erpHandler.CreateProject)
+		dbms_api.GET("/projects", erpHandler.GetAllProjects)
+		dbms_api.GET("/projects/search", erpHandler.FilterProjects)
+		dbms_api.PUT("/projects/:id", erpHandler.UpdateProject)
+		dbms_api.DELETE("/projects/:id", erpHandler.DeleteProject)
 
 		// 捐赠者管理
-		api.POST("/donors", erpHandler.CreateDonor)
-		api.GET("/donors", erpHandler.GetAllDonors)
-		api.GET("/donors/search", erpHandler.FilterDonors)
-		api.PUT("/donors/:id", erpHandler.UpdateDonor)
-		api.DELETE("/donors/:id", erpHandler.DeleteDonor)
+		dbms_api.POST("/donors", erpHandler.CreateDonor)
+		dbms_api.GET("/donors", erpHandler.GetAllDonors)
+		dbms_api.GET("/donors/search", erpHandler.FilterDonors)
+		dbms_api.PUT("/donors/:id", erpHandler.UpdateDonor)
+		dbms_api.DELETE("/donors/:id", erpHandler.DeleteDonor)
 
 		// 捐赠管理
-		api.POST("/donations", erpHandler.CreateDonation)
-		api.GET("/donations", erpHandler.GetAllDonations)
-		api.GET("/donations/search", erpHandler.FilterDonations)
-		api.PUT("/donations/:id", erpHandler.UpdateDonation)
-		api.DELETE("/donations/:id", erpHandler.DeleteDonation)
+		dbms_api.POST("/donations", erpHandler.CreateDonation)
+		dbms_api.GET("/donations", erpHandler.GetAllDonations)
+		dbms_api.GET("/donations/search", erpHandler.FilterDonations)
+		dbms_api.PUT("/donations/:id", erpHandler.UpdateDonation)
+		dbms_api.DELETE("/donations/:id", erpHandler.DeleteDonation)
 
 		// 志愿者管理
-		api.POST("/volunteers", erpHandler.CreateVolunteer)
-		api.GET("/volunteers", erpHandler.GetAllVolunteers)
-		api.GET("/volunteers/search", erpHandler.FilterVolunteers)
-		api.PUT("/volunteers/:id", erpHandler.UpdateVolunteer)
-		api.DELETE("/volunteers/:id", erpHandler.DeleteVolunteer)
+		dbms_api.POST("/volunteers", erpHandler.CreateVolunteer)
+		dbms_api.GET("/volunteers", erpHandler.GetAllVolunteers)
+		dbms_api.GET("/volunteers/search", erpHandler.FilterVolunteers)
+		dbms_api.PUT("/volunteers/:id", erpHandler.UpdateVolunteer)
+		dbms_api.DELETE("/volunteers/:id", erpHandler.DeleteVolunteer)
 
 		// 员工管理
-		api.POST("/employees", erpHandler.CreateEmployee)
-		api.GET("/employees", erpHandler.GetAllEmployees)
-		api.GET("/employees/search", erpHandler.FilterEmployees)
-		api.PUT("/employees/:id", erpHandler.UpdateEmployee)
-		api.DELETE("/employees/:id", erpHandler.DeleteEmployee)
+		dbms_api.POST("/employees", erpHandler.CreateEmployee)
+		dbms_api.GET("/employees", erpHandler.GetAllEmployees)
+		dbms_api.GET("/employees/search", erpHandler.FilterEmployees)
+		dbms_api.PUT("/employees/:id", erpHandler.UpdateEmployee)
+		dbms_api.DELETE("/employees/:id", erpHandler.DeleteEmployee)
 
 		// 地点管理
-		api.POST("/locations", erpHandler.CreateLocation)
-		api.GET("/locations", erpHandler.GetAllLocations)
-		api.GET("/locations/search", erpHandler.FilterLocations)
-		api.PUT("/locations/:id", erpHandler.UpdateLocation)
-		api.DELETE("/locations/:id", erpHandler.DeleteLocation)
+		dbms_api.POST("/locations", erpHandler.CreateLocation)
+		dbms_api.GET("/locations", erpHandler.GetAllLocations)
+		dbms_api.GET("/locations/search", erpHandler.FilterLocations)
+		dbms_api.PUT("/locations/:id", erpHandler.UpdateLocation)
+		dbms_api.DELETE("/locations/:id", erpHandler.DeleteLocation)
 
 		// 基金管理
-		api.POST("/funds", erpHandler.CreateFund)
-		api.GET("/funds", erpHandler.GetAllFunds)
-		api.GET("/funds/search", erpHandler.FilterFunds)
-		api.PUT("/funds/:id", erpHandler.UpdateFund)
-		api.DELETE("/funds/:id", erpHandler.DeleteFund)
+		dbms_api.POST("/funds", erpHandler.CreateFund)
+		dbms_api.GET("/funds", erpHandler.GetAllFunds)
+		dbms_api.GET("/funds/search", erpHandler.FilterFunds)
+		dbms_api.PUT("/funds/:id", erpHandler.UpdateFund)
+		dbms_api.DELETE("/funds/:id", erpHandler.DeleteFund)
 
 		// 支出管理
-		api.POST("/expenses", erpHandler.CreateExpense)
-		api.GET("/expenses", erpHandler.GetAllExpenses)
-		api.GET("/expenses/search", erpHandler.FilterExpenses)
-		api.PUT("/expenses/:id", erpHandler.UpdateExpense)
-		api.DELETE("/expenses/:id", erpHandler.DeleteExpense)
+		dbms_api.POST("/expenses", erpHandler.CreateExpense)
+		dbms_api.GET("/expenses", erpHandler.GetAllExpenses)
+		dbms_api.GET("/expenses/search", erpHandler.FilterExpenses)
+		dbms_api.PUT("/expenses/:id", erpHandler.UpdateExpense)
+		dbms_api.DELETE("/expenses/:id", erpHandler.DeleteExpense)
 
 		// 交易管理
-		api.POST("/transactions", erpHandler.CreateTransaction)
-		api.GET("/transactions", erpHandler.GetAllTransactions)
-		api.GET("/transactions/search", erpHandler.FilterTransactions)
-		api.PUT("/transactions/:id", erpHandler.UpdateTransaction)
-		api.DELETE("/transactions/:id", erpHandler.DeleteTransaction)
+		dbms_api.POST("/transactions", erpHandler.CreateTransaction)
+		dbms_api.GET("/transactions", erpHandler.GetAllTransactions)
+		dbms_api.GET("/transactions/search", erpHandler.FilterTransactions)
+		dbms_api.PUT("/transactions/:id", erpHandler.UpdateTransaction)
+		dbms_api.DELETE("/transactions/:id", erpHandler.DeleteTransaction)
 
 		// 采购管理
-		api.POST("/purchases", erpHandler.CreatePurchase)
-		api.GET("/purchases", erpHandler.GetAllPurchases)
-		api.GET("/purchases/search", erpHandler.FilterPurchases)
-		api.PUT("/purchases/:id", erpHandler.UpdatePurchase)
-		api.DELETE("/purchases/:id", erpHandler.DeletePurchase)
+		dbms_api.POST("/purchases", erpHandler.CreatePurchase)
+		dbms_api.GET("/purchases", erpHandler.GetAllPurchases)
+		dbms_api.GET("/purchases/search", erpHandler.FilterPurchases)
+		dbms_api.PUT("/purchases/:id", erpHandler.UpdatePurchase)
+		dbms_api.DELETE("/purchases/:id", erpHandler.DeletePurchase)
 
 		// 薪资管理
-		api.POST("/payrolls", erpHandler.CreatePayroll)
-		api.GET("/payrolls", erpHandler.GetAllPayrolls)
-		api.GET("/payrolls/search", erpHandler.FilterPayrolls)
-		api.PUT("/payrolls/:id", erpHandler.UpdatePayroll)
-		api.DELETE("/payrolls/:id", erpHandler.DeletePayroll)
+		dbms_api.POST("/payrolls", erpHandler.CreatePayroll)
+		dbms_api.GET("/payrolls", erpHandler.GetAllPayrolls)
+		dbms_api.GET("/payrolls/search", erpHandler.FilterPayrolls)
+		dbms_api.PUT("/payrolls/:id", erpHandler.UpdatePayroll)
+		dbms_api.DELETE("/payrolls/:id", erpHandler.DeletePayroll)
 
 		// 库存管理
-		api.POST("/inventory", erpHandler.CreateInventory)
-		api.GET("/inventory", erpHandler.GetAllInventories)
-		api.GET("/inventory/search", erpHandler.FilterInventories)
-		api.PUT("/inventory/:id", erpHandler.UpdateInventory)
-		api.DELETE("/inventory/:id", erpHandler.DeleteInventory)
+		dbms_api.POST("/inventory", erpHandler.CreateInventory)
+		dbms_api.GET("/inventory", erpHandler.GetAllInventories)
+		dbms_api.GET("/inventory/search", erpHandler.FilterInventories)
+		dbms_api.PUT("/inventory/:id", erpHandler.UpdateInventory)
+		dbms_api.DELETE("/inventory/:id", erpHandler.DeleteInventory)
 
 		// 礼品类型管理
-		api.POST("/gift-types", erpHandler.CreateGiftType)
-		api.GET("/gift-types", erpHandler.GetAllGiftTypes)
-		api.GET("/gift-types/search", erpHandler.FilterGiftTypes)
-		api.PUT("/gift-types/:id", erpHandler.UpdateGiftType)
-		api.DELETE("/gift-types/:id", erpHandler.DeleteGiftType)
+		dbms_api.POST("/gift-types", erpHandler.CreateGiftType)
+		dbms_api.GET("/gift-types", erpHandler.GetAllGiftTypes)
+		dbms_api.GET("/gift-types/search", erpHandler.FilterGiftTypes)
+		dbms_api.PUT("/gift-types/:id", erpHandler.UpdateGiftType)
+		dbms_api.DELETE("/gift-types/:id", erpHandler.DeleteGiftType)
 
 		// 礼品管理
-		api.POST("/gifts", erpHandler.CreateGift)
-		api.GET("/gifts", erpHandler.GetAllGifts)
-		api.GET("/gifts/search", erpHandler.FilterGifts)
-		api.PUT("/gifts/:id", erpHandler.UpdateGift)
-		api.DELETE("/gifts/:id", erpHandler.DeleteGift)
+		dbms_api.POST("/gifts", erpHandler.CreateGift)
+		dbms_api.GET("/gifts", erpHandler.GetAllGifts)
+		dbms_api.GET("/gifts/search", erpHandler.FilterGifts)
+		dbms_api.PUT("/gifts/:id", erpHandler.UpdateGift)
+		dbms_api.DELETE("/gifts/:id", erpHandler.DeleteGift)
 
 		// 库存交易管理
-		api.POST("/inventory-transactions", erpHandler.CreateInventoryTransaction)
-		api.GET("/inventory-transactions", erpHandler.GetAllInventoryTransactions)
-		api.GET("/inventory-transactions/search", erpHandler.FilterInventoryTransactions)
-		api.PUT("/inventory-transactions/:id", erpHandler.UpdateInventoryTransaction)
-		api.DELETE("/inventory-transactions/:id", erpHandler.DeleteInventoryTransaction)
+		dbms_api.POST("/inventory-transactions", erpHandler.CreateInventoryTransaction)
+		dbms_api.GET("/inventory-transactions", erpHandler.GetAllInventoryTransactions)
+		dbms_api.GET("/inventory-transactions/search", erpHandler.FilterInventoryTransactions)
+		dbms_api.PUT("/inventory-transactions/:id", erpHandler.UpdateInventoryTransaction)
+		dbms_api.DELETE("/inventory-transactions/:id", erpHandler.DeleteInventoryTransaction)
 
 		// 配送管理
-		api.POST("/deliveries", erpHandler.CreateDelivery)
-		api.GET("/deliveries", erpHandler.GetAllDeliveries)
-		api.GET("/deliveries/search", erpHandler.FilterDeliveries)
-		api.PUT("/deliveries/:id", erpHandler.UpdateDelivery)
-		api.DELETE("/deliveries/:id", erpHandler.DeleteDelivery)
+		dbms_api.POST("/deliveries", erpHandler.CreateDelivery)
+		dbms_api.GET("/deliveries", erpHandler.GetAllDeliveries)
+		dbms_api.GET("/deliveries/search", erpHandler.FilterDeliveries)
+		dbms_api.PUT("/deliveries/:id", erpHandler.UpdateDelivery)
+		dbms_api.DELETE("/deliveries/:id", erpHandler.DeleteDelivery)
 
 		// 志愿者-项目关联
-		api.POST("/volunteer-projects", erpHandler.CreateVolunteerProject)
-		api.GET("/volunteer-projects", erpHandler.GetAllVolunteerProjects)
-		api.GET("/volunteer-projects/search", erpHandler.FilterVolunteerProjects)
-		api.PUT("/volunteer-projects/:id", erpHandler.UpdateVolunteerProject)
-		api.DELETE("/volunteer-projects/:id", erpHandler.DeleteVolunteerProject)
+		dbms_api.POST("/volunteer-projects", erpHandler.CreateVolunteerProject)
+		dbms_api.GET("/volunteer-projects", erpHandler.GetAllVolunteerProjects)
+		dbms_api.GET("/volunteer-projects/search", erpHandler.FilterVolunteerProjects)
+		dbms_api.PUT("/volunteer-projects/:id", erpHandler.UpdateVolunteerProject)
+		dbms_api.DELETE("/volunteer-projects/:id", erpHandler.DeleteVolunteerProject)
 
 		// 员工-项目关联
-		api.POST("/employee-projects", erpHandler.CreateEmployeeProject)
-		api.GET("/employee-projects", erpHandler.GetAllEmployeeProjects)
-		api.GET("/employee-projects/search", erpHandler.FilterEmployeeProjects)
-		api.PUT("/employee-projects/:id", erpHandler.UpdateEmployeeProject)
-		api.DELETE("/employee-projects/:id", erpHandler.DeleteEmployeeProject)
+		dbms_api.POST("/employee-projects", erpHandler.CreateEmployeeProject)
+		dbms_api.GET("/employee-projects", erpHandler.GetAllEmployeeProjects)
+		dbms_api.GET("/employee-projects/search", erpHandler.FilterEmployeeProjects)
+		dbms_api.PUT("/employee-projects/:id", erpHandler.UpdateEmployeeProject)
+		dbms_api.DELETE("/employee-projects/:id", erpHandler.DeleteEmployeeProject)
 
 		// 基金-项目关联
-		api.POST("/fund-projects", erpHandler.CreateFundProject)
-		api.GET("/fund-projects", erpHandler.GetAllFundProjects)
-		api.GET("/fund-projects/search", erpHandler.FilterFundProjects)
-		api.PUT("/fund-projects/:id", erpHandler.UpdateFundProject)
-		api.DELETE("/fund-projects/:id", erpHandler.DeleteFundProject)
+		dbms_api.POST("/fund-projects", erpHandler.CreateFundProject)
+		dbms_api.GET("/fund-projects", erpHandler.GetAllFundProjects)
+		dbms_api.GET("/fund-projects/search", erpHandler.FilterFundProjects)
+		dbms_api.PUT("/fund-projects/:id", erpHandler.UpdateFundProject)
+		dbms_api.DELETE("/fund-projects/:id", erpHandler.DeleteFundProject)
 
 		// 捐赠-库存关联
-		api.POST("/donation-inventory", erpHandler.CreateDonationInventory)
-		api.GET("/donation-inventory", erpHandler.GetAllDonationInventories)
-		api.GET("/donation-inventory/search", erpHandler.FilterDonationInventories)
-		api.PUT("/donation-inventory/:id", erpHandler.UpdateDonationInventory)
-		api.DELETE("/donation-inventory/:id", erpHandler.DeleteDonationInventory)
+		dbms_api.POST("/donation-inventory", erpHandler.CreateDonationInventory)
+		dbms_api.GET("/donation-inventory", erpHandler.GetAllDonationInventories)
+		dbms_api.GET("/donation-inventory/search", erpHandler.FilterDonationInventories)
+		dbms_api.PUT("/donation-inventory/:id", erpHandler.UpdateDonationInventory)
+		dbms_api.DELETE("/donation-inventory/:id", erpHandler.DeleteDonationInventory)
 
 		// 交付-库存关联
-		api.POST("/delivery-inventory", erpHandler.CreateDeliveryInventory)
-		api.GET("/delivery-inventory", erpHandler.GetAllDeliveryInventories)
-		api.GET("/delivery-inventory/search", erpHandler.FilterDeliveryInventories)
-		api.PUT("/delivery-inventory/:id", erpHandler.UpdateDeliveryInventory)
-		api.DELETE("/delivery-inventory/:id", erpHandler.DeleteDeliveryInventory)
+		dbms_api.POST("/delivery-inventory", erpHandler.CreateDeliveryInventory)
+		dbms_api.GET("/delivery-inventory", erpHandler.GetAllDeliveryInventories)
+		dbms_api.GET("/delivery-inventory/search", erpHandler.FilterDeliveryInventories)
+		dbms_api.PUT("/delivery-inventory/:id", erpHandler.UpdateDeliveryInventory)
+		dbms_api.DELETE("/delivery-inventory/:id", erpHandler.DeleteDeliveryInventory)
 
 		// 日程管理
-		api.POST("/schedules", erpHandler.CreateSchedule)
-		api.GET("/schedules", erpHandler.GetAllSchedules)
-		api.GET("/schedules/search", erpHandler.FilterSchedules)
-		api.PUT("/schedules/:id", erpHandler.UpdateSchedule)
-		api.DELETE("/schedules/:id", erpHandler.DeleteSchedule)
+		dbms_api.POST("/schedules", erpHandler.CreateSchedule)
+		dbms_api.GET("/schedules", erpHandler.GetAllSchedules)
+		dbms_api.GET("/schedules/search", erpHandler.FilterSchedules)
+		dbms_api.PUT("/schedules/:id", erpHandler.UpdateSchedule)
+		dbms_api.DELETE("/schedules/:id", erpHandler.DeleteSchedule)
 	}
 
 	// 启动服务器（使用配置中的端口）

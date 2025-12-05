@@ -16,6 +16,7 @@ import (
 
 // ERPHandler 持有各服务的引用
 type ERPHandler struct {
+	userService                 *services.UserService
 	projectService              *services.ProjectService
 	donorService                *services.DonorService
 	donationService             *services.DonationService
@@ -42,6 +43,7 @@ type ERPHandler struct {
 
 // NewERPHandler 构造器
 func NewERPHandler(
+	userService *services.UserService,
 	projectService *services.ProjectService,
 	donorService *services.DonorService,
 	donationService *services.DonationService,
@@ -66,6 +68,7 @@ func NewERPHandler(
 	scheduleService *services.ScheduleService,
 ) *ERPHandler {
 	return &ERPHandler{
+		userService:                 userService,
 		projectService:              projectService,
 		donorService:                donorService,
 		donationService:             donationService,
@@ -182,6 +185,56 @@ func parseDateRange(c *gin.Context) (time.Time, time.Time) {
 		}
 	}
 	return start, end
+}
+
+// User
+func (h *ERPHandler) CreateUser(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "Not implemented. Use register instead"})
+}
+
+func (h *ERPHandler) GetAllUsers(c *gin.Context) {
+	list, err := h.userService.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list, "count": len(list)})
+}
+
+func (h *ERPHandler) UpdateUser(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+	var m models.User
+	if err := c.ShouldBindJSON(&m); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	m.ID = uint(id)
+	if err := h.userService.Update(&m); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": m})
+}
+
+func (h *ERPHandler) FilterUsers(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "Filter not implemented for user table"})
+}
+
+func (h *ERPHandler) DeleteUser(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+	if err := h.userService.Delete(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "deleted"})
 }
 
 // --- For each entity: Create, GetAll, Update, Filter (501), Delete ---

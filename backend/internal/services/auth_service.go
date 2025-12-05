@@ -90,13 +90,20 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 		return nil, errors.New("failed to hash password")
 	}
 
+	var status string
+
+	if req.UserType == "donor" || req.UserType == "volunteer" {
+		status = "active"
+	} else {
+		status = "pending"
+	}
+
 	// 创建用户
 	user := &models.User{
 		Username:     req.Username,
 		PasswordHash: string(hashedPassword),
 		UserType:     req.UserType,
-		Status:       "active",
-		CreatedAt:    time.Now(),
+		Status:       status,
 		UpdatedAt:    time.Now(),
 	}
 
@@ -186,7 +193,7 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 
 	// 检查用户是否激活
 	if user.Status != "active" {
-		return nil, errors.New("user has been disabled")
+		return nil, errors.New("user account not active")
 	}
 
 	var role_id uint
@@ -222,6 +229,11 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 	if err != nil {
 		return nil, errors.New("failed to generate token")
 	}
+
+	// update last login time
+	now := time.Now().UTC()
+	user.LastLogin = &now
+	s.userRepo.Update(&user)
 
 	return &AuthResponse{
 		Token:    token,
