@@ -27,7 +27,7 @@ if %ERRORLEVEL% EQU 0 (
     exit /b 1
 )
 
-REM 重置环境变量
+REM Restore environment variables
 set GOOS=
 set GOARCH=
 set GOARM=
